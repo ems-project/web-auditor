@@ -1,0 +1,25 @@
+{
+  "name": "web-auditor",
+  "version": "1.0.0",
+  "description": "A node web auditor for elasticMS",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "elasticms",
+    "wcag",
+    "HTML",
+    "CodeSniffer"
+  ],
+  "author": "Mathieu De Keyzer",
+  "license": "MIT",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "html_codesniffer": "^2.5.1",
+    "path": "^0.12.7",
+    "puppeteer": "^20.1.0",
+    "puppeteer-core": "^20.1.0",
+    "yargs": "^17.7.2"
+  }
+}
