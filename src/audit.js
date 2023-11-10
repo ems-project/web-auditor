@@ -4,11 +4,12 @@ const pa11y = require('pa11y');
 const { PuppeteerCrawler, Dataset } = require('crawlee');
 const cliProgress = require('cli-progress');
 // const coreApi = new CoreApi()
-// const crypto = require('crypto')
+const crypto = require('crypto')
 
 // coreApi.login()
 
 const baseUrl = args._[0]
+const hashes = []
 
 if (undefined === baseUrl) {
     console.log('The argument website to test is mandatory')
@@ -21,7 +22,7 @@ progressBar.start(1, 0)
 const crawler = new PuppeteerCrawler({
     preNavigationHooks: [
         async (crawlingContext, gotoOptions) => {
-            gotoOptions.timeout = 30_000;
+            gotoOptions.timeout = 20_000;
             gotoOptions.navigationTimeoutSecs = 10;
         },
     ],
@@ -42,9 +43,6 @@ const crawler = new PuppeteerCrawler({
         }
 
         const url = new URL(request.loadedUrl)
-        // const shasum = crypto.createHash('sha1')
-        // shasum.update(`AuditHashSeed$${request.loadedUrl}`)
-        // const ouuid = shasum.digest('hex')
 
         // Save results as JSON to ./storage/datasets/default
         await Dataset.pushData({
@@ -59,15 +57,29 @@ const crawler = new PuppeteerCrawler({
             locale: locale,
             size: headers['content-length'],
         });
-
         await enqueueLinks({
             transformRequestFunction(req) {
-                if (req.url.endsWith('.pdf')) return false;
-                if (req.url.endsWith('.doc')) return false;
-                if (req.url.endsWith('.docx')) return false;
-                if (req.url.endsWith('.xls')) return false;
-                if (req.url.endsWith('.xlsx')) return false;
-                return req;
+                const url = new URL(req.url)
+                const shasum = crypto.createHash('sha1')
+                shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
+                const hash = shasum.digest('hex')
+                if (hashes.includes(hash)) {
+                    return false
+                }
+                hashes.push(hash)
+
+                if (url.pathname.endsWith('.pdf')) return false
+                if (url.pathname.endsWith('.doc')) return false
+                if (url.pathname.endsWith('.docx')) return false
+                if (url.pathname.endsWith('.xls')) return false
+                if (url.pathname.endsWith('.xlsx')) return false
+                if (url.pathname.endsWith('.zip')) return false
+                if (url.pathname.endsWith('.xlsm')) return false
+                if (url.pathname.endsWith('.xml')) return false
+                if (url.pathname.endsWith('.odt')) return false
+                if (url.pathname.endsWith('.dwg')) return false
+
+                return req
             },
         });
         this.requestQueue.getInfo().then((info) => {
@@ -79,6 +91,7 @@ const crawler = new PuppeteerCrawler({
         console.log(request)
     },
     headless: true,
+    maxConcurrency: 100,
 });
 
 
