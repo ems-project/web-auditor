@@ -1,12 +1,8 @@
 const args = require('yargs').argv
-// const CoreApi = require('./CoreApi/CoreApi')
 const pa11y = require('pa11y');
 const { PuppeteerCrawler, Dataset } = require('crawlee');
 const cliProgress = require('cli-progress');
-// const coreApi = new CoreApi()
 const crypto = require('crypto')
-
-// coreApi.login()
 
 const baseUrl = args._[0]
 const hashes = []
@@ -43,7 +39,6 @@ const crawler = new PuppeteerCrawler({
         }
 
         const url = new URL(request.loadedUrl)
-
         // Save results as JSON to ./storage/datasets/default
         await Dataset.pushData({
             title: title,
@@ -94,11 +89,7 @@ const crawler = new PuppeteerCrawler({
     maxConcurrency: 100,
 });
 
-
-
 (async () => {
     await crawler.run([baseUrl])
     process.exit(0)
 })();
-
-
