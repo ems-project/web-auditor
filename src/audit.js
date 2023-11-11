@@ -91,5 +91,5 @@ const crawler = new PuppeteerCrawler({
 
 (async () => {
     await crawler.run([baseUrl])
-    process.exit(0)
+    progressBar.stop()
 })();
