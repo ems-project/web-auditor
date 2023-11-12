@@ -43,7 +43,9 @@ node src/upload.js
 
 ## Cleaning
 
-This script cleans out audit results that are older that storage/datasets/default/000000001.json
+This script cleans out audit results that are older that `storage/datasets/default/000000001.json`. 
+
+Caution: this script does not currently give live feedback. Check the elasticms job's logs for live status.
 
 ```shell
 node src/clean-out.js
