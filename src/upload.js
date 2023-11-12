@@ -28,7 +28,6 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', 'default
         try {
             await coreApi.mergeDocument('audit', hash, document)
         } catch (e) {
-            console.log(e)
             console.warn(`Impossible to update document ${hash} from file ${file}`)
         }
         progressBar.increment()
