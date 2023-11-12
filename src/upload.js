@@ -5,6 +5,7 @@ const cliProgress = require("cli-progress");
 const crypto = require("crypto");
 require('dotenv').config();
 const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', 'default');
+const Process = require("./Helpers/Process");
 
 (async () => {
 
@@ -27,6 +28,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', 'default
         const hash = sha1Sum.digest('hex')
         try {
             await coreApi.mergeDocument('audit', hash, document)
+            await Process.sleep(100)
         } catch (e) {
             console.warn(`Impossible to update document ${hash} from file ${file}`)
         }
