@@ -1,6 +1,7 @@
 'use strict'
 const https = require('node:https')
 const path = require("path")
+const Process = require("../Helpers/Process");
 
 module.exports =  class CoreApi {
     constructor() {
@@ -46,11 +47,40 @@ module.exports =  class CoreApi {
     async mergeDocument(type, hash, document) {
         const options = Object.assign({}, this.options)
         options.path = path.join(this.options.path, 'api', 'data', type, 'update', hash)
-        options.method = 'POST'
-        await this._makeRequest(options, document)
+        await this._makeRequest(options, 'POST', document)
     }
 
-    async _makeRequest(urlOptions, data = null) {
+    async runCommand(command) {
+        const job = {
+            'class': 'EMS\\CoreBundle\\Entity\\Job',
+            'arguments': {},
+            'properties': {
+                'command': command,
+            },
+        }
+        const options = Object.assign({}, this.options)
+        options.path = path.join(this.options.path, 'api', 'admin', 'job')
+        const jobId = (await this._makeRequest(options, 'POST', job)).body.id
+
+        options.path = path.join(this.options.path, 'api', 'admin', 'start-job', jobId)
+        this._makeRequest(options, 'POST')
+
+        while (true) {
+            options.path = path.join(this.options.path, 'api', 'admin', 'job-status', jobId)
+            const status = (await this._makeRequest(options)).body
+
+            if (status.done) {
+                console.log(status.output)
+                break
+            }
+            await Process.sleep(10000)
+        }
+
+
+    }
+
+    async _makeRequest(urlOptions, method = 'GET', data = null) {
+        urlOptions.method = method
         return new Promise((resolve, reject) => {
             const req = https.request(urlOptions,
                 (res) => {
