@@ -28,10 +28,10 @@ const Process = require("./Helpers/Process");
         const hash = sha1Sum.digest('hex')
         try {
             await coreApi.mergeDocument('audit', hash, document)
-            await Process.sleep(100)
         } catch (e) {
             console.warn(`Impossible to update document ${hash} from file ${file}`)
         }
+        await Process.sleep(300)
         progressBar.increment()
     }
     progressBar.stop()
