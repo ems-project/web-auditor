@@ -1,27 +1,16 @@
-const CoreApi = require('./CoreApi/CoreApi')
+const CoreApi = require('./CoreApi/CoreApi');
 const path = require('path');
 const fs = require('fs');
 const cliProgress = require("cli-progress");
 const crypto = require("crypto");
-
-const emsAdmin = process.env.WEB_AUDIT_EMS_ADMIN || null;
-const emsAuthKey = process.env.WEB_AUDIT_EMS_AUTHKEY || null;
+require('dotenv').config();
 const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', 'default');
 
 (async () => {
-    if (null === emsAdmin) {
-        console.log('The environment variable WEB_AUDIT_EMS_ADMIN must be defined')
-    }
-    if (null === emsAuthKey) {
-        console.log('The environment variable WEB_AUDIT_EMS_AUTHKEY must be defined')
-    }
-    if (null === emsAuthKey || null === emsAdmin) {
-        process.exit(-1)
-    }
 
-    const coreApi = new CoreApi(emsAdmin, emsAuthKey)
+    const coreApi = new CoreApi()
     if (!await coreApi.login()) {
-        console.log(`The script is not able to login ElasticMS admin ${emsAdmin}`)
+        console.log(`The script is not able to login to ElasticMS admin`)
         process.exit(-1)
     }
 
