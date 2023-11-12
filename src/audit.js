@@ -39,6 +39,10 @@ const crawler = new PuppeteerCrawler({
         }
 
         const url = new URL(request.loadedUrl)
+        let status = (await response).status()
+        if (304 === status) {
+            status = 200
+        }
         // Save results as JSON to ./storage/datasets/default
         await Dataset.pushData({
             title: title,
@@ -47,21 +51,15 @@ const crawler = new PuppeteerCrawler({
             pa11y: audit.issues,
             host: url.hostname,
             base_url: url.pathname,
-            status_code: (await response).status(),
+            status_code: status,
             mimetype: headers['content-type'],
             locale: locale,
             size: headers['content-length'],
+            timestamp: new Date().toISOString(),
         });
         await enqueueLinks({
             transformRequestFunction(req) {
                 const url = new URL(req.url)
-                const shasum = crypto.createHash('sha1')
-                shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
-                const hash = shasum.digest('hex')
-                if (hashes.includes(hash)) {
-                    return false
-                }
-                hashes.push(hash)
 
                 if (url.pathname.endsWith('.pdf')) return false
                 if (url.pathname.endsWith('.doc')) return false
@@ -73,6 +71,14 @@ const crawler = new PuppeteerCrawler({
                 if (url.pathname.endsWith('.xml')) return false
                 if (url.pathname.endsWith('.odt')) return false
                 if (url.pathname.endsWith('.dwg')) return false
+
+                const shasum = crypto.createHash('sha1')
+                shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
+                const hash = shasum.digest('hex')
+                if (hashes.includes(hash)) {
+                    return false
+                }
+                hashes.push(hash)
 
                 return req
             },
