@@ -3,6 +3,7 @@ const pa11y = require('pa11y');
 const { PuppeteerCrawler, Dataset } = require('crawlee');
 const cliProgress = require('cli-progress');
 const crypto = require('crypto')
+const String = require("./Helpers/String");
 
 const baseUrl = args._[0]
 const hashes = []
@@ -55,7 +56,7 @@ const crawler = new PuppeteerCrawler({
             mimetype: headers['content-type'],
             locale: locale,
             size: headers['content-length'],
-            timestamp: new Date().toISOString(),
+            timestamp: String.getTimestamp(),
         });
         await enqueueLinks({
             transformRequestFunction(req) {
