@@ -31,7 +31,7 @@ const Process = require("./Helpers/Process");
         } catch (e) {
             console.warn(`Impossible to update document ${hash} from file ${file}`)
         }
-        await Process.sleep(200)
+        await Process.sleep(250)
         progressBar.increment()
     }
     progressBar.stop()
