@@ -26,24 +26,25 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', 'default
     }
 
 
-    fs.readdir(directoryPath, function (err, files) {
-        if (err) {
-            return console.log('Unable to scan directory: ' + err)
+    const files = fs.readdirSync(directoryPath)
+    const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
+    progressBar.start(files.length, 0)
+    for (const file of files) {
+        const rawData = fs.readFileSync(path.join(directoryPath, file))
+        let document = JSON.parse(rawData)
+        const url = new URL(document.url)
+        const sha1Sum = crypto.createHash('sha1')
+        sha1Sum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
+        const hash = sha1Sum.digest('hex')
+        try {
+            await coreApi.mergeDocument('audit', hash, document)
+        } catch (e) {
+            console.log(e)
+            console.warn(`Impossible to update document ${hash} from file ${file}`)
         }
-        const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
-        progressBar.start(files.length, 0)
-        files.forEach(function (file) {
-            const rawdata = fs.readFileSync(path.join(directoryPath, file))
-            let document = JSON.parse(rawdata)
-            const url = new URL(document.url)
-            const shasum = crypto.createHash('sha1')
-            shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
-            const hash = shasum.digest('hex')
-            coreApi.mergeDocument('audit', hash, document)
-            progressBar.increment()
-        });
-        progressBar.stop()
-    })
+        progressBar.increment()
+    }
+    progressBar.stop()
 })();
 
 

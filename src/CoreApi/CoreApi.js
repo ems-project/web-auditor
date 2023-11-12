@@ -9,20 +9,25 @@ module.exports =  class CoreApi {
             hostname: url.hostname,
             path: url.pathname,
             headers: {
-                'X-Auth-Token': apiKey
+                'X-Auth-Token': apiKey,
+                'Accept': 'application/json',
             }
         }
     }
 
     async login() {
-        const options = this.options
+        const options = Object.assign({}, this.options)
         options.path = path.join(this.options.path, 'api', 'test')
         const data = await this._makeRequest(options)
-        const body = JSON.parse(data.body)
+        const body = data.body
         return true === body.success
     }
 
     async mergeDocument(type, hash, document) {
+        const options = Object.assign({}, this.options)
+        options.path = path.join(this.options.path, 'api', 'data', type, 'update', hash)
+        options.method = 'POST'
+        await this._makeRequest(options, document)
     }
 
     async _makeRequest(urlOptions, data = null) {
@@ -34,15 +39,15 @@ module.exports =  class CoreApi {
                     res.on('error', reject);
                     res.on('end', () => {
                         if (res.statusCode >= 200 && res.statusCode <= 299) {
-                            resolve({statusCode: res.statusCode, headers: res.headers, body: body});
+                            resolve({statusCode: res.statusCode, headers: res.headers, body: JSON.parse(body)});
                         } else {
-                            reject('Request failed. status: ' + res.statusCode + ', body: ' + body);
+                            reject('Request failed. Status: ' + res.statusCode + ': ' + body);
                         }
                     });
                 });
             req.on('error', reject);
             if (data) {
-                req.write(data, 'binary');
+                req.write(JSON.stringify(data));
             }
             req.end();
         });
