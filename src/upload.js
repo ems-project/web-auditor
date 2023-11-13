@@ -26,12 +26,16 @@ const Process = require("./Helpers/Process");
         const sha1Sum = crypto.createHash('sha1')
         sha1Sum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
         const hash = sha1Sum.digest('hex')
-        try {
-            await coreApi.mergeDocument('audit', hash, document)
-        } catch (e) {
-            console.warn(`Impossible to update document ${hash} from file ${file}`)
+        let counter = 1;
+        while (true) {
+            try {
+                await coreApi.mergeDocument('audit', hash, document)
+                break
+            } catch (e) {
+                console.warn(`Impossible to update document ${hash} from file ${file}, retry after ${counter} sec`)
+                await Process.sleep(1000 * counter++)
+            }
         }
-        await Process.sleep(250)
         progressBar.increment()
     }
     progressBar.stop()
