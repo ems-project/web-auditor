@@ -3,8 +3,17 @@ const path = require('path');
 const fs = require('fs');
 const cliProgress = require("cli-progress");
 const crypto = require("crypto");
+const args = require('yargs').argv
 require('dotenv').config();
-const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', 'default');
+
+let datasetId = args._[0]
+if (undefined === datasetId) {
+    datasetId = 'default'
+} else {
+    datasetId = datasetId.replaceAll('/', '_').replaceAll(':', '')
+}
+
+const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', datasetId);
 const Process = require("./Helpers/Process");
 
 (async () => {

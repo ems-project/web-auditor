@@ -14,7 +14,7 @@ if (undefined === baseUrl) {
     process.exit(-1)
 }
 if (undefined === datasetId) {
-    datasetId = 'default'
+    datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);

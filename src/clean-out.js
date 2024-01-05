@@ -1,10 +1,18 @@
 const CoreApi = require('./CoreApi/CoreApi');
 const path = require('path');
 const fs = require("fs");
+const args = require('yargs').argv
 require('dotenv').config();
 
+let datasetId = args._[0]
+if (undefined === datasetId) {
+    datasetId = 'default'
+} else {
+    datasetId = datasetId.replaceAll('/', '_').replaceAll(':', '')
+}
+
 (async () => {
-    const sourcePath = path.join(__dirname, '..', 'storage', 'datasets', 'default', '000000001.json')
+    const sourcePath = path.join(__dirname, '..', 'storage', 'datasets', datasetId, '000000001.json')
     const rawData = fs.readFileSync(sourcePath)
     const document = JSON.parse(rawData)
 
