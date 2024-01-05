@@ -77,6 +77,11 @@ const crawler = new PuppeteerCrawler({
                     if (url.pathname.endsWith('.xml')) return false
                     if (url.pathname.endsWith('.odt')) return false
                     if (url.pathname.endsWith('.dwg')) return false
+                    if (url.pathname.endsWith('.jpeg')) return false
+                    if (url.pathname.endsWith('.jpg')) return false
+                    if (url.pathname.endsWith('.png')) return false
+                    if (url.pathname.endsWith('.png')) return false
+                    if (url.pathname.endsWith('.xsd')) return false
 
                     const shasum = crypto.createHash('sha1')
                     shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
