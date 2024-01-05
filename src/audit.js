@@ -49,7 +49,7 @@ const crawler = new PuppeteerCrawler({
             title: title,
             meta_title: metaTitle,
             url: request.loadedUrl,
-            pa11y: audit.issues,
+            pa11y: audit.issues.slice(0, 10),
             host: url.hostname,
             base_url: url.pathname,
             status_code: status,
