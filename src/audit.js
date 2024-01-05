@@ -6,11 +6,15 @@ const crypto = require('crypto')
 const String = require("./Helpers/String");
 
 const baseUrl = args._[0]
+let datasetId = args._[1]
 const hashes = []
 
 if (undefined === baseUrl) {
     console.log('The argument website to test is mandatory')
     process.exit(-1)
+}
+if (undefined === datasetId) {
+    datasetId = 'default'
 }
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
@@ -45,8 +49,8 @@ const crawler = new PuppeteerCrawler({
             if (304 === status) {
                 status = 200
             }
-            // Save results as JSON to ./storage/datasets/default
-            await Dataset.pushData({
+            const dataset = await Dataset.open(datasetId);
+            await dataset.pushData({
                 title: title,
                 meta_title: metaTitle,
                 url: request.loadedUrl,
