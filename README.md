@@ -21,7 +21,7 @@ Check Pupeteer document for your platform.
 
 ## Audit
 
-This script launches the audit. A JSON file per URL audited is saved in the directory `storage/datasets/default`
+This script launches the audit. A JSON file per URL audited is saved in the directory `storage/datasets/https__elasticms.fgov.be/`
 
 
 ```shell
@@ -30,23 +30,35 @@ node src/audit.js https://elasticms.fgov.be
 
 ## Upload
 
-This script upload the current JSON files present in the folder `storage/datasets/default` in elasticms.
+This script upload the current JSON files present in the folder `storage/datasets/https__elasticms.fgov.be/` in elasticms.
 Ensure first that the audit has been performed completely.
 
-Also define those 2 environment variables:
+The audit base url is mandatory in order to identify the right dataset to upload.
+
+Also define those 2 environment variables (or in a `.env` file):
  * WEB_AUDIT_EMS_ADMIN
  * WEB_AUDIT_EMS_AUTHKEY
 
 ```shell
-node src/upload.js
+node src/upload.js  https://elasticms.fgov.be/
 ```
 
 ## Cleaning
 
-This script cleans out audit results that are older that `storage/datasets/default/000000001.json`. 
+This script cleans out audit results that are older that `storage/datasets/https__elasticms.fgov.be//000000001.json`. 
 
 Caution: this script does not currently give live feedback. Check the elasticms job's logs for live status.
 
+The audit base url is mandatory in order to identify the right dataset to upload.
+
 ```shell
-node src/clean-out.js
+node src/clean-out.js  https://elasticms.fgov.be/
+```
+
+## All in one
+
+A shell script, at the root, is available to audit, upload and clean a website with a single command:
+
+```shell
+./audit.sh  https://elasticms.fgov.be/
 ```
