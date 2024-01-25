@@ -126,7 +126,7 @@ const crawler = new PuppeteerCrawler({
   } else {
     console.log(`${errorCounter} errors found on ${pagesInError.length} pages.`)
     for (let i = 0; i < pagesInError.length && i < 50; ++i) {
-      console.log(`- ${pagesInError[i]} (${pagesCounter[i]})`)
+      console.log(`- ${pagesInError[i]} (${pagesCounter[i]} errors)`)
     }
     if (pagesInError.length > 50) {
       console.log('...')
