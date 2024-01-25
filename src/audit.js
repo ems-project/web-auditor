@@ -8,6 +8,9 @@ const String = require("./Helpers/String");
 const baseUrl = args._[0]
 let datasetId = args._[1]
 const hashes = []
+let errorCounter = 0
+let pagesInError = []
+let pagesCounter = []
 
 if (undefined === baseUrl) {
     console.log('The argument website to test is mandatory')
@@ -50,6 +53,11 @@ const crawler = new PuppeteerCrawler({
                 status = 200
             }
             const dataset = await Dataset.open(datasetId);
+            if (audit.issues.length > 0) {
+                errorCounter += audit.issues.length
+                pagesInError.push(request.loadedUrl)
+                pagesCounter.push(audit.issues.length)
+            }
             await dataset.pushData({
                 title: title,
                 meta_title: metaTitle,
@@ -112,5 +120,18 @@ const crawler = new PuppeteerCrawler({
 
 (async () => {
     await crawler.run([baseUrl])
+    console.log('-------------------------------------------------------------------------------------')
+    if (errorCounter === 0) {
+        console.log('Hooray! No accessibility error found.')
+    } else{
+        console.log(`${errorCounter} errors found on ${pagesInError.length} pages.`)
+        for (let i = 0; i < pagesInError.length && i < 50; ++i) {
+            console.log(`- ${pagesInError[i]} (${pagesCounter[i]})`)
+        }
+        if (pagesInError.length > 50) {
+            console.log('...')
+        }
+    }
+    console.log('-------------------------------------------------------------------------------------')
     progressBar.stop()
 })();
