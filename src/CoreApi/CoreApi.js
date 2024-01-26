@@ -4,9 +4,6 @@ const path = require("path")
 const Process = require("../Helpers/Process");
 
 module.exports =  class CoreApi {
-    constructor() {
-    }
-
     async login() {
         const emsAdmin = process.env.WEB_AUDIT_EMS_ADMIN || null;
         const emsAuthKey = process.env.WEB_AUDIT_EMS_AUTHKEY || null;
