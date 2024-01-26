@@ -88,7 +88,7 @@ module.exports =  class CoreApi {
                         if (res.statusCode >= 200 && res.statusCode <= 299) {
                             resolve({statusCode: res.statusCode, headers: res.headers, body: JSON.parse(body)});
                         } else {
-                            reject('Request failed. Status: ' + res.statusCode + ': ' + body);
+                            reject(new Error('Request failed. Status: ' + res.statusCode + ': ' + body));
                         }
                     });
                 });
