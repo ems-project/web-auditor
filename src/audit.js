@@ -9,6 +9,9 @@ const baseUrl = args._[0]
 let datasetId = args._[1]
 const hashes = []
 
+const pagesWithIssues = []
+let totalIssuesCount = 0
+
 if (undefined === baseUrl) {
     console.log('The argument website to test is mandatory')
     process.exit(-1)
@@ -63,6 +66,14 @@ const crawler = new PuppeteerCrawler({
                 size: headers['content-length'],
                 timestamp: String.getTimestamp(),
             });
+            if (status === 200 && audit.issues.length > 0) {
+                totalIssuesCount += audit.issues.length
+                pagesWithIssues.push({
+                    host: url.hostname,
+                    url: request.loadedUrl,
+                    issueCount: audit.issues.length
+                });
+            }
             await enqueueLinks({
                 transformRequestFunction(req) {
                     const url = new URL(req.url)
@@ -112,5 +123,21 @@ const crawler = new PuppeteerCrawler({
 
 (async () => {
     await crawler.run([baseUrl])
+
+    logSummaryReport(totalIssuesCount)
+
     progressBar.stop()
 })();
+
+function logSummaryReport(totalIssuesCount) {
+    console.log("\n------------------------------------------------------------")
+    if (totalIssuesCount > 0) {
+        console.log(`${totalIssuesCount} error${totalIssuesCount !== 1 ? 's' : ''} found on ${pagesWithIssues.length} page${pagesWithIssues.length !== 1 ? 's' : ''}:`)
+        pagesWithIssues.forEach((item) => {
+            console.log(`- ${item.url} (${item.issueCount} error${item.issueCount !== 1 ? 's' : ''})`)
+        });
+    } else {
+        console.log("Yippee ki‐yay! No accessibility error found.")
+    }
+    console.log("------------------------------------------------------------\n")
+}
