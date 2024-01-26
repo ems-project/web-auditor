@@ -69,7 +69,6 @@ const crawler = new PuppeteerCrawler({
             if (status === 200 && audit.issues.length > 0) {
                 totalIssuesCount += audit.issues.length
                 pagesWithIssues.push({
-                    host: url.hostname,
                     url: request.loadedUrl,
                     issueCount: audit.issues.length
                 });
@@ -125,7 +124,7 @@ const crawler = new PuppeteerCrawler({
     await crawler.run([baseUrl])
 
     logSummaryReport(totalIssuesCount)
-    createSummaryReportHTML(totalIssuesCount)
+    createSummaryReportHTML(totalIssuesCount,baseUrl)
 
     progressBar.stop()
 })();
@@ -142,7 +141,7 @@ function logSummaryReport(totalIssuesCount) {
     }
     console.log("------------------------------------------------------------\n")
 }
-function createSummaryReportHTML(totalIssuesCount) {
+function createSummaryReportHTML(totalIssuesCount,baseUrl) {
     const fs = require('fs')
 
     if (!fs.existsSync('./storage/reports/')) {
