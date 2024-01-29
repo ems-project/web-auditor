@@ -123,8 +123,10 @@ const crawler = new PuppeteerCrawler({
 (async () => {
     await crawler.run([baseUrl])
 
-    logSummaryReport(totalIssuesCount)
-    createSummaryReportHTML(totalIssuesCount,baseUrl)
+    if(crawler.stats.state.requestsFinished > 1) {
+        logSummaryReport(totalIssuesCount)
+        createSummaryReportHTML(totalIssuesCount,baseUrl)
+    }
 
     progressBar.stop()
 })();
