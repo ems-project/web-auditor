@@ -125,7 +125,6 @@ const crawler = new PuppeteerCrawler({
 
     if(crawler.stats.state.requestsFinished > 1) {
         logSummaryReport(totalIssuesCount)
-        createSummaryReportHTML(totalIssuesCount,baseUrl)
     }
 
     progressBar.stop()
@@ -142,53 +141,4 @@ function logSummaryReport(totalIssuesCount) {
         console.log("Yippee ki‐yay! No accessibility error found.")
     }
     console.log("------------------------------------------------------------\n")
-}
-function createSummaryReportHTML(totalIssuesCount,baseUrl) {
-    const fs = require('fs')
-
-    if (!fs.existsSync('./storage/reports/')) {
-        fs.mkdirSync('./storage/reports/', { recursive: true })
-    }
-    const url = new URL(baseUrl);
-    const hostname = url.hostname.replace(/[^a-zA-Z0-9]/g, '_')
-    const reportPath = `./storage/reports/${hostname}-accessibility-report.html`
-
-    const boxClasses = 'p-3 rounded-3 shadow border border-2 '
-    let htmlList = ''
-    pagesWithIssues.forEach(item => {
-        htmlList += `<li><a href="${item.url}">${item.url}</a> (${item.issueCount} error${item.issueCount !== 1 ? 's' : ''})</li>`;
-    });
-    const htmlContent = `<!DOCTYPE html>
-        <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Accessibility Report</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-            </head>
-            <body>
-                <div class="container-lg">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h1 class="my-3">Accessibility Report</h1>
-                        ${baseUrl}
-                    </div>
-                    ${totalIssuesCount > 0 ?
-                        `<div class="${boxClasses} border-danger">
-                            <p>${totalIssuesCount} error${totalIssuesCount !== 1 ? 's' : ''} found on ${pagesWithIssues.length} page${pagesWithIssues.length !== 1 ? 's' : ''}:</p>
-                            <ul class="mb-0">
-                                ${htmlList}
-                            </ul>
-                        </div>` :
-                        `<div class="${boxClasses} border-success">
-                            <p class="d-flex align-items-center mb-0">
-                                <span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.
-                            </p>
-                        </div>`
-                    }
-                </div>
-            </body>
-        </html>
-    `;
-    fs.writeFileSync(reportPath, htmlContent)
-    console.log(`HTML report here: ${reportPath}`)
 }
