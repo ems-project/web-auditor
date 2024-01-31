@@ -10,7 +10,7 @@ let datasetId = args._[1]
 const hashes = []
 let dataset = null
 
-const pagesWithIssues = []
+let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
 
 if (undefined === baseUrl) {
@@ -69,10 +69,7 @@ const crawler = new PuppeteerCrawler({
       })
       if (status === 200 && audit.issues.length > 0) {
         totalIssuesCount += audit.issues.length
-        pagesWithIssues.push({
-          url: request.loadedUrl,
-          issueCount: audit.issues.length
-        })
+        pagesWithIssuesCount++
       }
       await enqueueLinks({
         transformRequestFunction (req) {
@@ -130,20 +127,18 @@ const crawler = new PuppeteerCrawler({
   }
   await crawler.run([baseUrl])
 
-  if(crawler.stats.state.requestsFinished > 1) {
-    logSummaryReport(totalIssuesCount)
+  if (crawler.stats.state.requestsFinished > 1) {
+    logSummaryReport(totalIssuesCount, pagesWithIssuesCount, baseUrl)
   }
 
   progressBar.stop()
 })()
 
-function logSummaryReport (totalIssuesCount) {
+function logSummaryReport (totalIssuesCount, pagesWithIssuesCount, baseUrl) {
   console.log('\n------------------------------------------------------------')
   if (totalIssuesCount > 0) {
-    console.log(`${totalIssuesCount} error${totalIssuesCount !== 1 ? 's' : ''} found on ${pagesWithIssues.length} page${pagesWithIssues.length !== 1 ? 's' : ''}:`)
-    pagesWithIssues.forEach((item) => {
-      console.log(`- ${item.url} (${item.issueCount} error${item.issueCount !== 1 ? 's' : ''})`)
-    })
+    console.log(`${totalIssuesCount} error${totalIssuesCount !== 1 ? 's' : ''} found on ${pagesWithIssuesCount} page${pagesWithIssuesCount > 0 ? 's' : ''}`)
+    console.log(`Launch "node src/create.js ${baseUrl}" for detailed report`)
   } else {
     console.log('Yippee ki‐yay! No accessibility error found.')
   }
