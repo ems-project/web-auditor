@@ -8,6 +8,7 @@ const String = require('./Helpers/String')
 const baseUrl = args._[0]
 let datasetId = args._[1]
 const hashes = []
+let dataset = null
 
 const pagesWithIssues = []
 let totalIssuesCount = 0
@@ -121,6 +122,12 @@ const crawler = new PuppeteerCrawler({
 });
 
 (async () => {
+  dataset = await Dataset.open(datasetId)
+  const info = await dataset.getInfo()
+  if (info.itemCount !== 0) {
+    await dataset.drop()
+    dataset = await Dataset.open(datasetId)
+  }
   await crawler.run([baseUrl])
 
   if(crawler.stats.state.requestsFinished > 1) {
