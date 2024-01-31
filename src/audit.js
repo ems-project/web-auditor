@@ -53,7 +53,6 @@ const crawler = new PuppeteerCrawler({
       if (status === 304) {
         status = 200
       }
-      const dataset = await Dataset.open(datasetId)
       await dataset.pushData({
         title,
         meta_title: metaTitle,
