@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const mustache = require('mustache');
 const yaml = require('js-yaml');
+const moment = require('moment');
 
 const args = require('yargs').argv
 const baseUrl = args._[0]
@@ -26,8 +27,10 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 
         if (files.length > 0) {
             let totalIssuesCount = 0,
-                pagesWithIssues = 0
-            let errorsByPage = ''
+                pagesWithIssues = 0,
+                errorsByPage = '',
+                startTime,
+                endTime
 
             files.forEach((file, index) => {
                 const rawData = fs.readFileSync(path.join(directoryPath, file))
@@ -44,9 +47,19 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 
                     errorsByPage += errorByPageItem(document,index)
                 }
+
+                if (index === 0) {
+                    startTime = document.timestamp
+                }
+                if (index === files.length - 1) {
+                    endTime = document.timestamp
+                }
             });
-            const stats = getStats(totalIssuesCount,pagesWithIssues);
-            createSummaryReportHTML(baseUrl,stats,errorTypes,errorsByPage)
+
+            const stats = getStats(totalIssuesCount,pagesWithIssues)
+            const duration = `Audit duration: <strong>${getDuration(startTime, endTime)}</strong> - Audit date: <strong>${getDate(endTime)}</strong>`
+
+            createSummaryReportHTML(baseUrl,stats,errorTypes,errorsByPage,duration)
         } else {
             console.error(`File not found in ${directoryPath}`)
         }
@@ -57,7 +70,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 
 function errorByPageItem(document,index) {
     const collapseLink =  `<a class="me-3 btn btn-sm btn-light border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">Details</a>`;
-    const pageLink = `<a href="${document.url}" target="_blank">${document.url}</a>`;
+    const pageLink = `<a class="text-break me-3" href="${document.url}" target="_blank">${document.url}</a>`;
     const errorsByPageCount = `<span class="ms-auto badge bg-danger">${document.pa11y.length}</span>`;
 
     let detailsContent = '';
@@ -82,9 +95,9 @@ function errorByPageItem(document,index) {
 }
 function getStats(totalIssuesCount,pagesWithIssues) {
     if(totalIssuesCount > 0) {
-        return `<p><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</p>`
+        return `<strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}`
     } else {
-        return `<p class="d-flex align-items-center mb-0"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</p>`
+        return `<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>`
     }
 }
 function parseErrorCode(errorCode) {
@@ -95,7 +108,7 @@ function parseErrorCode(errorCode) {
         label: getTranslation('en', 'accessibility.techniques.'+errorCodeSplit[4])
     };
 }
-function createSummaryReportHTML(baseUrl,stats,errorTypes,errorsByPage) {
+function createSummaryReportHTML(baseUrl,stats,errorTypes,errorsByPage,duration) {
     const summaryTemplate = './src/Render/templates/summary.html';
     const summaryTemplateContent = fs.readFileSync(summaryTemplate, 'utf8');
 
@@ -119,9 +132,9 @@ function createSummaryReportHTML(baseUrl,stats,errorTypes,errorsByPage) {
 
     const summaryData = {
         url: baseUrl,
-        date: 'date',
         color: errorList.length ? 'danger': 'success',
         stats: stats,
+        duration: duration,
         errorTypes: errorList,
         errorsByPage: errorsByPage
     };
@@ -174,4 +187,32 @@ function getTranslation(language, key) {
     const keys = key.split('.');
     const translation = keys.reduce((obj, k) => obj[k],translations);
     return translation || key;
+}
+function getDate(timestamp) {
+    const dateObj = moment(timestamp);
+    //const dateFormat = dateObj.format("DD/MM/YYYY HH:mm");
+    const dateFormat = dateObj.format("DD/MM/YYYY");
+    return dateFormat
+}
+function getDuration(startTime, endTime) {
+    const start = moment(startTime);
+    const end = moment(endTime);
+
+    const differenceInMilliseconds = end.diff(start);
+
+    const duration = moment.duration(differenceInMilliseconds);
+
+    // Formatting the duration
+    const hours = Math.floor(duration.asHours());
+    const minutes = Math.floor(duration.minutes());
+    const seconds = Math.floor(duration.seconds());
+
+    switch (true) {
+        case hours > 0:
+            return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+        case minutes > 0:
+            return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+        default:
+            return `${seconds} ${seconds === 1 ? 'second' : 'seconds'}`;
+    }
 }

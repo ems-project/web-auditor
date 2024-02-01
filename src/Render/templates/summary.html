@@ -11,13 +11,15 @@
     <div class="container-lg">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h1 class="my-3 fw-light">A11y Report summary</h1>
-            <div class="text-right">
+            <div class="text-end">
                 {{ url }}
-                {{ date }}
             </div>
         </div>
         <div class="p-3 mb-5 rounded-3 shadow border border-2 border-{{color}}">
-            {{{ stats }}}
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                <p class="mb-md-0">{{{ stats }}}</p>
+                <p class="ms-md-auto mb-0">{{{ duration }}}</p>
+            </div>
 
             {{#errorTypes}}
             <h3 class="fw-semibold fs-4 mt-4">Error types</h3>
