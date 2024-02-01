@@ -28,6 +28,16 @@ This script launches the audit. A JSON file per URL audited is saved in the dire
 node src/audit.js https://elasticms.fgov.be
 ```
 
+## Create local report
+
+`create.js` generates a summary report for a prior audit and launches a local server for review. The report, which includes the total error count, the number of pages with errors, and the audit date, is saved in `/storage/reports/` and easily shareable (for analysis and corrections). It also provides a list of error types and a breakdown of pages with errors, including specific error information.
+
+Running an audit (using audit.js) on the URL before executing create.js is mandatory.
+
+```shell
+node src/create.js  https://elasticms.fgov.be/
+```
+
 ## Upload
 
 This script upload the current JSON files present in the folder `storage/datasets/https__elasticms.fgov.be/` in elasticms.
