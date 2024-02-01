@@ -57,7 +57,8 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       })
 
       const stats = getStats(totalIssuesCount, pagesWithIssues)
-      const duration = `Audit duration: <strong>${getDuration(startTime, endTime)}</strong> - Audit date: <strong>${getDate(endTime)}</strong>`
+      const duration = `<span class="text-muted me-3" title="Audit duration"><i class="bi bi-stopwatch" aria-hidden="true"></i> <strong>${getDuration(startTime, endTime)}</strong></span>
+        <span title="Audit date"><strong>${getDate(endTime)}</strong></span>`
 
       createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, duration)
     } else {
