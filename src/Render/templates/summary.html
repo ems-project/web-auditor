@@ -17,19 +17,18 @@
         </div>
         <div class="p-3 mb-5 rounded-3 shadow border border-2 border-{{color}}">
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
-                <p class="mb-md-0">{{{ stats }}}</p>
-                <p class="ms-md-auto mb-0">{{{ duration }}}</p>
+                {{{ stats }}}
             </div>
 
             {{#errorTypes}}
-            <h3 class="fw-semibold fs-4 mt-4">Error types</h3>
+            <h3 class="fw-semibold fs-4 mt-4 mb-3">Error types</h3>
             <ul class="list-group">
                 {{{ errorTypes }}}
             </ul>
             {{/errorTypes}}
 
             {{#errorsByPage}}
-            <h3 class="fw-semibold fs-4 mt-4">Errors by page</h3>
+            <h3 class="fw-semibold fs-4 mt-4 mb-3">Errors by page</h3>
             <ul class="list-group mb-0">
                 {{{ errorsByPage }}}
             </ul>

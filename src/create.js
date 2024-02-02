@@ -56,11 +56,10 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
         }
       })
 
-      const stats = getStats(totalIssuesCount, pagesWithIssues)
-      const duration = `<span class="text-muted me-3" title="Audit duration"><i class="bi bi-stopwatch" aria-hidden="true"></i> <strong>${getDuration(startTime, endTime)}</strong></span>
-        <span title="Audit date"><strong>${getDate(endTime)}</strong></span>`
+      const duration = getDuration(startTime, endTime)
+      const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime)
 
-      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, duration)
+      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage)
     } else {
       console.error(`File not found in ${directoryPath}`)
     }
@@ -71,11 +70,11 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 // Utility functions
 function htmlEntities (str) {
   return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 function loadTranslations (language) {
   try {
@@ -122,12 +121,19 @@ function getDuration (startTime, endTime) {
 }
 
 // Audit-specific functions
-function getStats (totalIssuesCount, pagesWithIssues) {
+function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endTime) {
+  let statsErrors
   if (totalIssuesCount > 0) {
-    return `<strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}`
+    statsErrors = `<strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}`
   } else {
-    return '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
+    statsErrors = '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
   }
+
+  const auditStats = `<span class="text-muted me-3" title="Audit duration"><i class="bi bi-stopwatch" aria-hidden="true"></i> <strong>${duration}</strong></span>
+        <strong>${totalPages}</strong> audited pages on <strong>${getDate(endTime)}</strong>`
+
+  return `<p class="mb-md-0">${statsErrors}</p>
+  <p class="ms-md-auto mb-0">${auditStats}</p>`
 }
 function parseErrorCode (errorCode) {
   const errorCodeSplit = errorCode.split('.')
