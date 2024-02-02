@@ -61,6 +61,8 @@ accessibility:
         H43: 'Using id and headers attributes to associate data cells with header cells in data tables'
         H44: 'Using label elements to associate text labels with form controls'
         H49: 'Using semantic markup to mark emphasized or special text'
+        H49_AlignAttr: 'Element with an align attribute.'
+        H49_Font: 'Obsolete HTML5 markup'
         H63: 'Using the scope attribute to associate header cells and data cells in data tables'
         H71: 'Providing a description for groups of form controls using fieldset and legend elements'
         H73: 'Using the summary attribute of the table element to give an overview of data tables'

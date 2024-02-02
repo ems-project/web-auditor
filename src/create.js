@@ -89,7 +89,7 @@ function getTranslation (language, key) {
   const translations = loadTranslations(language)
   const keys = key.split('.')
   const translation = keys.reduce((obj, k) => obj[k], translations)
-  return translation || key
+  return translation
 }
 function getDate (timestamp) {
   const dateObj = moment(timestamp)
@@ -138,9 +138,12 @@ function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endT
 function parseErrorCode (errorCode) {
   const errorCodeSplit = errorCode.split('.')
 
+  const techniqueLabel = getTranslation('en', 'accessibility.techniques.' + errorCodeSplit[4])
+  const techniqueLabelDetails = getTranslation('en', 'accessibility.techniques.' + errorCodeSplit[4]+'_'+errorCodeSplit[5])
+
   return {
     code: errorCodeSplit[4],
-    label: getTranslation('en', 'accessibility.techniques.' + errorCodeSplit[4])
+    label: techniqueLabel + (techniqueLabelDetails ? '<span class="ms-2 text-muted">('+techniqueLabelDetails+')</span>' : '')
   }
 }
 function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, duration) {
@@ -208,7 +211,7 @@ function errorByPageItem (document, index) {
   document.pa11y.forEach(issue => {
     const technique = parseErrorCode(issue.code)
     detailsContent += `<div class="card rounded-0 mt-3">
-            <div class="card-body py-1"><strong>${technique.label}</strong> - <span class="help-text">${issue.message}</span></div>
+            <div class="card-body py-1"><strong>${technique.label}</strong><br><span class="help-text">${issue.message}</span></div>
             <div class="card-footer"><pre class="bg-light mb-0">${htmlEntities(issue.context)}</pre></div>
         </div>`
   })
@@ -217,7 +220,7 @@ function errorByPageItem (document, index) {
         <li class="list-group-item">
             <div class="d-flex justify-content-between align-items-center">${collapseLink} ${pageLink} ${errorsByPageCount}</div>
             <div class="collapse" id="collapse-${index}">
-                <ul class="list-unstyled">
+                <ul class="list-unstyled mb-4">
                     <li>${detailsContent}</li>
                 </ul>
             </div>
