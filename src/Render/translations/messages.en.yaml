@@ -1,0 +1,116 @@
+accessibility:
+    accessibility_audit: 'Accessibility Audit'
+    amount_page_scanned: 'Amount of pages scanned'
+    audit_date: 'Audit date'
+    description: Description
+    errors: Errors
+    general_info: 'General info'
+    info_texts:
+        1: 'Information and user interface components must be presentable to users in ways they can perceive.'
+        '1_1': 'Provide text alternatives for any non-text content so that it can be changed into other forms people need, such as large print, braille, speech, symbols or simpler language.'
+        '1_3': 'Create content that can be presented in different ways (for example simpler layout) without losing information or structure.'
+        '1_4': 'Make it easier for users to see and hear content including separating foreground from background.'
+        2: 'User interface components and navigation must be operable.'
+        '2_2': 'Provide users enough time to read and use content.'
+        '2_4': 'Provide ways to help users navigate, find content, and determine where they are.'
+        3: 'Information and the operation of the user interface must be understandable.'
+        '3_1': 'Make text content readable and understandable.'
+        '3_2': 'Make Web pages appear and operate in predictable ways.'
+        4: 'Content must be robust enough that it can be interpreted by a wide variety of user agents, including assistive technologies.'
+        '4_1': 'Maximize compatibility with current and future user agents, including assistive technologies.'
+    labels:
+        1: '1. Perceivable'
+        '1_1': '1.1 Text Alternatives'
+        '1_1_1': '1.1.1 Non-text Content'
+        '1_3': '1.3 Adaptable'
+        '1_3_1': '1.3.1 Info and Relationships'
+        '1_4': '1.4 Distinguishable'
+        '1_4_3': '1.4.3 Contrast (Minimum)'
+        2: '2. Operable'
+        '2_2': '2.2 Enough Time'
+        '2_2_1': '2.2.1 Timing Adjustable'
+        '2_2_2': '2.2.2 Pause, Stop, Hide'
+        '2_4': '2.4 Navigable'
+        '2_4_1': '2.4.1 Bypass Blocks'
+        '2_4_2': '2.4.2 Page Titled'
+        '2_4_8': '2.4.8 Location'
+        3: '3. Understandable'
+        '3_1': '3.1 Readable'
+        '3_1_1': '3.1.1 Language of Page'
+        '3_1_2': '3.1.2 Language of Parts'
+        '3_1_6': '3.1.6 Pronunciation'
+        '3_2': '3.2 Predictable'
+        '3_2_2': '3.2.2 On Input'
+        4: '4. Robust'
+        '4_1': '4.1 Compatibel'
+        '4_1_1': '4.1.1 Parsing'
+        '4_1_2': '4.1.2 Name, Role, Value'
+    techniques:
+        H2: 'Combining adjacent image and text links for the same resource'
+        H24: 'Providing text alternatives for the area elements of image maps'
+        H30: 'Providing link text that describes the purpose of a link for anchor elements'
+        H35: 'Providing link text that describes the purpose of a link for anchor elements'
+        H36: 'Using alt attributes on images used as submit buttons'
+        H37: 'Using alt attributes on img elements'
+        H53: 'Using the body of the object element'
+        H67: 'Using null alt text and no title attribute on img elements for images that Assistive Technology should ignore'
+        F68: 'Failure of Success Criterion 4.1.2 due to a user interface control not having a programmatically determined name'
+        F92: 'Failure of Success Criterion 1.3.1 due to the use of role presentation on content which conveys semantic information'
+        H39: 'Using caption elements to associate data table captions with data tables'
+        H42: 'Using h1-h6 to identify headings'
+        H43: 'Using id and headers attributes to associate data cells with header cells in data tables'
+        H44: 'Using label elements to associate text labels with form controls'
+        H49: 'Using semantic markup to mark emphasized or special text'
+        H63: 'Using the scope attribute to associate header cells and data cells in data tables'
+        H71: 'Providing a description for groups of form controls using fieldset and legend elements'
+        H73: 'Using the summary attribute of the table element to give an overview of data tables'
+        G145: 'Ensuring that a contrast ratio of at least 3:1 exists between text (and images of text) and background behind the text'
+        G18: 'Ensuring that a contrast ratio of at least 3:1 exists between text (and images of text) and background behind the text'
+        F40: 'Failure of Success Criterion 2.2.1 and 2.2.4 due to using meta redirect with a time limit'
+        F41: 'Failure of Success Criterion 2.2.1, 2.2.4, and 3.2.5 due to using meta refresh to reload the page'
+        F47: 'Failure of Success Criterion 2.2.2 due to using the blink element'
+        G1: 'Adding a link at the top of each page that goes directly to the main content area'
+        G123: 'Adding a link at the beginning of a block of repeated content to go to the end of the block'
+        G124: 'Adding links at the top of the page to each area of the content'
+        H64: 'Using the title attribute of the frame and iframe elements'
+        H25: 'Providing a title using the title element'
+        H59: 'Using the link element and navigation tools'
+        H57: 'Using the language attribute on the HTML element'
+        H58: 'Using language attributes to identify changes in the human language'
+        H62: 'Using the ruby element'
+        H32: 'Providing submit buttons'
+        F77: 'Failure of Success Criterion 4.1.1 due to duplicate values of type ID'
+        H91: 'Using HTML form controls and links'
+    no_audit_available: 'Sorry, the accessibility audit is not available in this language'
+    not_available: 'Audit is not available'
+    page_title: 'Accessibility Audit'
+    pages: Pages
+    references: Ref(s)
+    url: URL
+    website_name: 'Website name'
+    website_url: 'Website url'
+home:
+    page_title: 'Audit reports'
+    table:
+        base_url: base url
+        bootstrap: bootstrap
+        bootstrap_json: bootstrap+json
+        errors: errors
+        json: json
+        pages: pages
+        site: site
+        start: start
+        stop: stop
+month:
+    April: April
+    August: August
+    December: December
+    February: February
+    January: January
+    July: July
+    June: June
+    March: March
+    May: May
+    November: November
+    October: October
+    September: September

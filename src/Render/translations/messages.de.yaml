@@ -1,0 +1,115 @@
+accessibility:
+    accessibility_audit: 'Kontrolle der Barrierefreiheit'
+    amount_page_scanned: 'Kontrolle der Barrierefreiheit'
+    audit_date: 'Datum der Überprüfung'
+    description: Beschreibung
+    errors: Fehler
+    general_info: 'Allgemeine Informationen'
+    info_texts:
+        1: 'Webinhalte werden den Sinnen zugänglich gemacht - dem Sehen, Hören und/oder Tasten.'
+        '1_1': 'Bereitstellung von Textalternativen für alle Nicht-Text-Inhalte an, damit sie in andere Formen geändert werden können, die von den Benutzern benötigt werden, z. B. Großdruck, Braille, Sprache, Symbole oder einfachere Sprache.'
+        '1_3': 'Erstellung von Inhalten, die auf unterschiedliche Weise präsentiert werden können (z. B. vereinfachtes Layout), ohne dass Informationen oder Struktur verloren gehen'
+        '1_4': 'Erleichterung der visuellen und auditiven Wahrnehmung des Inhalts durch den Nutzer, insbesondere durch Trennung von Vorder- und Hintergrund'
+        2: 'Machen Sie alle Funktionen über die Tastatur zugänglich.'
+        '2_2': 'Geben Sie den Benutzern genügend Zeit, um Inhalte zu lesen und zu verwenden.'
+        '2_4': 'Bieten Sie Möglichkeiten, um Benutzern beim Navigieren, Finden von Inhalten und Ermitteln ihres Standorts zu helfen.'
+        3: 'Die Informationen und die Nutzung der Schnittstelle sind verständlich'
+        '3_1': 'Machen Sie Textinhalte lesbar und verständlich.'
+        '3_2': 'Make Web pages appear and operate in predictable ways.'
+        4: 'Der Inhalt kann von einer Vielzahl von Benutzeragenten zuverlässig genutzt werden, einschließlich die Technologien'
+        '4_1': 'Maximize compatibility with current and future user agents, including assistive technologies.'
+    labels:
+        1: '1. Wahrnehmbar'
+        '1_1': '1.1 Textalternativen'
+        '1_1_1': '1.1.1 Nicht-Text-Inhalt'
+        '1_3': '1.3 Anpassbar'
+        '1_3_1': '1.3.1 Info und Beziehungen'
+        '1_4': '1.4 Unterscheidbar'
+        '1_4_3': '1.4.3 Contrast (Minimum)'
+        2: '2. Bedienbaar'
+        '2_2': '2.2 Ausreichend Zeit'
+        '2_2_1': '2.2.1 Zeiteinteilung anpassbar'
+        '2_2_2': '2.2.2 Pausieren, beenden, ausblenden'
+        '2_4': '2.4 Navigierbar'
+        '2_4_1': '2.4.1 Blöcke umgehen'
+        '2_4_2': '2.4.2 Seite mit Titel versehen'
+        '2_4_8': '2.4.8 Location'
+        3: '3. Verständlich'
+        '3_1': '3.1 Lesbar'
+        '3_1_1': '3.1.1 Sprache der Seite'
+        '3_1_2': '3.1.2 Taal van de onderdelen'
+        '3_1_6': '3.1.6 Pronunciation'
+        '3_2': '3.2 Vorhersehbar'
+        '3_2_2': '3.2.2 Bei Eingabe'
+        4: '4. Robust'
+        '4_1': '4.1 Kompatibel'
+        '4_1_1': '4.1.1 Syntaxanalyse'
+        '4_1_2': '4.1.2 Name, Rolle, Wert'
+    techniques:
+        H2: 'Kombinieren Sie ein Bild und einen Link-Titel für dieselbe Ressource in demselben Link'
+        H24: 'Bereitstellung von Textalternativen für Elemente einer Image Map'
+        H30: 'Geben Sie einen Link-Titel an, der die Funktion des Links für ein Ankerelement beschreibt'
+        H35: 'Geben Sie ein Textäquivalent für das Applet-Element an'
+        H36: 'Verwendung eines alt-Attributs für ein Bild, das als Schaltfläche zum Senden verwendet wird'
+        H37: 'Verwendung des alt-Attributs für das Element img'
+        H53: 'Verwenden Sie den Körper des Objektelements'
+        H67: 'Verwenden Sie ein leeres alt-Attribut ohne ein title- Attribut auf einem img-Element für Bilder, die von unterstützenden Technologien ignoriert werden sollen'
+        F68: 'Nichtbestehen der Erfolgskriterien 1.3.1 und 4.1.2 aufgrund der Tatsache, dass die Verbindung zwischen dem Etikett und der Komponente der Benutzeroberfläche nicht programmatisch bestimmbar ist'
+        F92: 'Failure of Success Criterion 1.3.1 due to the use of role presentation on content which conveys semantic information'
+        H39: 'Verwenden Sie das caption-Element, um einen Tabellentitel mit den Tabellendaten zu verknüpfen'
+        H42: 'Verwenden Sie h1-h6 zur Kennzeichnung von Abschnittsüberschriften'
+        H43: 'Verwenden Sie die Attribute id und header, um Datenzellen mit Kopfzellen in Datentabellen zu verknüpfen.'
+        H44: 'Verwenden Sie das label-Element, um Beschriftungen mit Formularfeldern zu verknüpfen'
+        H49: 'Verwenden Sie semantisches Markup, um unterstrichenen oder besonderen Text zu markieren'
+        H63: 'Verwenden Sie das Scope-Attribut, um Kopfzellen und Datenzellen in Datentabellen zu verknüpfen'
+        H71: 'Gliederung einer Seite mit Abschnittsüberschriften'
+        H73: 'Verwenden Sie das Attribut summary des Elements table, um einen Überblick über eine Datentabelle zu geben'
+        G145: 'Achten Sie darauf, dass zwischen dem Text (und Text in Bildform) und dem Texthintergrund ein Kontrastverhältnis von mindestens 3:1 besteht.'
+        G18: 'Achten Sie auf ein Kontrastverhältnis von mindestens 4,5 zu 1 zwischen dem Text (und Text in Bildform) und dem Texthintergrund.'
+        F40: 'Nichterfüllung der Erfolgskriterien 2.2.1 und 2.2.4 für die Verwendung einer Meta-Umleitung mit Verzögerung'
+        F41: 'Nichterfüllung der Erfolgskriterien 2.2.1, 2.2.4 und 3.2.5 für die Verwendung von Meta-Refresh mit Verzögerung'
+        F47: 'Nichterfüllung des Erfolgskriteriums 2.2.2 für die Verwendung des Blink-Elements'
+        G1: 'Fügen Sie am Anfang jeder Seite einen Link ein, der direkt zum Hauptinhaltsbereich führt.'
+        G123: 'Hinzufügen eines Links am Anfang eines sich wiederholenden Inhaltsblocks, um zum Ende dieses Blocks zu gelangen'
+        G124: 'Hinzufügen von Links am Anfang der Seite, die zu den einzelnen Inhaltsbereichen führen'
+        H64: 'Verwendung des title-Attributs von frame- und iframe- Elementen'
+        H25: 'Geben Sie einen Titel mit dem Element title'
+        H59: 'Using the link element and navigation tools'
+        H57: 'Verwendung von Sprachattributen im html-Element'
+        H58: 'Verwendung von Sprachattributen zur Ermittlung von Sprachänderungen'
+        H62: 'Using the ruby element'
+        H32: 'Eine Schaltfläche zum Absenden bereitstellen'
+        F77: 'Nichtbestehen des Erfolgskriteriums 4.1.1 im Zusammenhang mit der Duplizierung von ID-Typ-Werten'
+        H91: 'Verwendung von Formularelementen und Links'
+    no_audit_available: 'Sorry, the accessibility audit is not available in this language'
+    not_available: 'Audit is not available'
+    page_title: 'Kontrolle der Barrierefreiheit'
+    pages: Seiten
+    references: Hinweis(e)
+    url: URL
+    website_name: 'Name der Webseite'
+    website_url: 'URL der Seite'
+home:
+    page_title: 'Audit reports'
+    table:
+        bootstrap: bootstrap
+        bootstrap_json: bootstrap+json
+        errors: errors
+        json: json
+        pages: pages
+        site: site
+        start: start
+        stop: stop
+month:
+    April: April
+    August: August
+    December: Dezember
+    February: Februar
+    January: Januar
+    July: Juli
+    June: Juni
+    March: März
+    May: May
+    November: November
+    October: Oktober
+    September: September
