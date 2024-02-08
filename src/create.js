@@ -89,7 +89,7 @@ function getTranslation (language, key) {
   const translations = loadTranslations(language)
   const keys = key.split('.')
   const translation = keys.reduce((obj, k) => obj[k], translations)
-  return translation
+  return translation || ''
 }
 function getDate (timestamp) {
   const dateObj = moment(timestamp)
@@ -137,13 +137,41 @@ function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endT
 }
 function parseErrorCode (errorCode) {
   const errorCodeSplit = errorCode.split('.')
+  const techniqueCode = errorCodeSplit[4]
+  const techniqueCodeDetail = errorCodeSplit[5]
+  let techniqueLabel
+  let techniqueLabelDetail
 
-  const techniqueLabel = getTranslation('en', 'accessibility.techniques.' + errorCodeSplit[4])
-  const techniqueLabelDetails = getTranslation('en', 'accessibility.techniques.' + errorCodeSplit[4]+'_'+errorCodeSplit[5])
+  const getTechniqueText = (code) => {
+    return getTranslation('en', 'accessibility.techniques.' + code)
+  }
+
+  const makeTechniqueLink = (code) => {
+    return `<a class="text-decoration-none" href="https://www.w3.org/TR/WCAG20-TECHS/${code}" target="_blank">${code}</a>`
+  }
+
+  if (techniqueCode.includes(',')) {
+    const multipleErrors = techniqueCode.split(',')
+    techniqueLabel = '<ul class="list-unstyled">'
+    multipleErrors.forEach((code, index) => {
+      techniqueLabel += `<li>${makeTechniqueLink(code)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(code)}</li>`
+    })
+    techniqueLabelDetail = getTechniqueText(multipleErrors.join('_') + '_' + techniqueCodeDetail)
+    if(techniqueLabelDetail) {
+      techniqueLabel += `<li class="text-muted"><i class="bi bi-backspace-reverse" aria-hidden="true"></i> ${techniqueLabelDetail}</li>`
+    }
+    techniqueLabel += '</ul>'
+  } else {
+    techniqueLabel = `${makeTechniqueLink(techniqueCode)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(techniqueCode)}`
+    techniqueLabelDetail = getTechniqueText(techniqueCode + '_' + techniqueCodeDetail)
+    if(techniqueLabelDetail) {
+      techniqueLabel += `<span class="ms-3 text-muted"><i class="bi bi-backspace-reverse" aria-hidden="true"></i> ${techniqueLabelDetail}</span>`
+    }
+  }
 
   return {
-    code: errorCodeSplit[4],
-    label: techniqueLabel + (techniqueLabelDetails ? '<span class="ms-2 text-muted">('+techniqueLabelDetails+')</span>' : '')
+    code: techniqueCode,
+    label: techniqueLabel
   }
 }
 function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, duration) {
@@ -161,9 +189,7 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, dura
     const technique = parseErrorCode(errorCode)
 
     errorList += `<li class="list-group-item d-flex justify-content-between align-items-center">
-            <a class="tex-decoration-none" href="https://www.w3.org/TR/WCAG20-TECHS/${technique.code}" target="_blank">
-                ${technique.code}
-            </a><i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i>${technique.label}
+            ${technique.label}
             <span class="ms-auto badge bg-danger">${errorCount}</span>
         </li>`
   }
@@ -210,9 +236,10 @@ function errorByPageItem (document, index) {
 
   document.pa11y.forEach(issue => {
     const technique = parseErrorCode(issue.code)
-    detailsContent += `<div class="card rounded-0 mt-3">
-            <div class="card-body py-1"><strong>${technique.label}</strong><br><span class="help-text">${issue.message}</span></div>
-            <div class="card-footer"><pre class="bg-light mb-0">${htmlEntities(issue.context)}</pre></div>
+    detailsContent += `<div class="card rounded-2 mt-3 border-secondary">
+            <div class="card-header py-1 bg-white">${issue.message}</div>
+            <div class="card-body py-2 bg-light"><pre class="mb-0">${htmlEntities(issue.context)}</pre></div>
+            <small class="card-footer py-1 bg-white d-flex">${technique.label}</small>
         </div>`
   })
 
