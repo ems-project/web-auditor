@@ -1,7 +1,7 @@
-"use strict";
+'use strict'
 
-module.exports.sleep = function sleep(ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
+module.exports.sleep = function sleep (ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
 }
