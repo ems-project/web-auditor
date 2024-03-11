@@ -4,6 +4,7 @@ accessibility:
     audit_date: 'Audit date'
     description: Description
     errors: Errors
+    excluded_base_urls: 'Excluded base URLs'
     general_info: 'General info'
     info_texts:
         1: 'Information and user interface components must be presentable to users in ways they can perceive.'
@@ -45,8 +46,15 @@ accessibility:
         '4_1': '4.1 Compatibel'
         '4_1_1': '4.1.1 Parsing'
         '4_1_2': '4.1.2 Name, Role, Value'
+    missing_issue: 'Missing error description, please send this page to an administrator.'
+    no_audit_available: 'Sorry, the accessibility audit is not available in this language'
+    not_available: 'Audit is not available'
+    page_title: 'Accessibility Audit'
+    pages: Pages
+    pages_error: '{0} No page with errors|{1} 1 page with errors|]1,Inf[ %count% pages with errors'
+    pages_other_error: 'This page contains other errors:'
+    references: Ref(s)
     techniques:
-        ARIA4: 'Using a WAI-ARIA role to expose the role of a user interface component'
         F40: 'Failure of Success Criterion 2.2.1 and 2.2.4 due to using meta redirect with a time limit'
         F41: 'Failure of Success Criterion 2.2.1, 2.2.4, and 3.2.5 due to using meta refresh to reload the page'
         F47: 'Failure of Success Criterion 2.2.2 due to using the blink element'
@@ -54,11 +62,10 @@ accessibility:
         F77: 'Failure of Success Criterion 4.1.1 due to duplicate values of type ID'
         F92: 'Failure of Success Criterion 1.3.1 due to the use of role presentation on content which conveys semantic information'
         G1: 'Adding a link at the top of each page that goes directly to the main content area'
-        G18: 'Ensuring that a contrast ratio of at least 3:1 exists between text (and images of text) and background behind the text'
         G123: 'Adding a link at the beginning of a block of repeated content to go to the end of the block'
         G124: 'Adding links at the top of the page to each area of the content'
         G145: 'Ensuring that a contrast ratio of at least 3:1 exists between text (and images of text) and background behind the text'
-        G1_G123_G124_NoSuchID: 'Anchor does not exist'
+        G18: 'Ensuring that a contrast ratio of at least 3:1 exists between text (and images of text) and background behind the text'
         H2: 'Combining adjacent image and text links for the same resource'
         H24: 'Providing text alternatives for the area elements of image maps'
         H25: 'Providing a title using the title element'
@@ -68,53 +75,62 @@ accessibility:
         H36: 'Using alt attributes on images used as submit buttons'
         H37: 'Using alt attributes on img elements'
         H39: 'Using caption elements to associate data table captions with data tables'
+        'H39,H73': 'If both caption and summary are provided for one table, the summary should not duplicate the caption'
         H42: 'Using h1-h6 to identify headings'
         H43: 'Using id and headers attributes to associate data cells with header cells in data tables'
+        'H43,H63': 'Define the relationship between td and th elements using scope or headers attributes'
         H44: 'Using label elements to associate text labels with form controls'
         H49: 'Using semantic markup to mark emphasized or special text'
-        H49_AlignAttr: 'Element with an align attribute.'
-        H49_Font: 'Obsolete HTML5 markup'
-        H53: 'Using the body of the object element'
+        'H53,ARIA6': 'Using the body of the object element'
         H57: 'Using the language attribute on the HTML element'
         H58: 'Using language attributes to identify changes in the human language'
         H59: 'Using the link element and navigation tools'
         H62: 'Using the ruby element'
         H63: 'Using the scope attribute to associate header cells and data cells in data tables'
         H64: 'Using the title attribute of the frame and iframe elements'
+        H65: 'Using the title attribute to identify form controls when the label element cannot be used'
         H67: 'Using null alt text and no title attribute on img elements for images that Assistive Technology should ignore'
         H71: 'Providing a description for groups of form controls using fieldset and legend elements'
         H73: 'Using the summary attribute of the table element to give an overview of data tables'
         H91: 'Using HTML form controls and links'
-    no_audit_available: 'Sorry, the accessibility audit is not available in this language'
-    not_available: 'Audit is not available'
-    page_title: 'Accessibility Audit'
-    pages: Pages
-    references: Ref(s)
+        H93: 'Ensuring that id attributes are unique on a Web page'
+    techniques_help:
+        AlignAttr: 'Element with an align attribute'
+        Font: 'Obsolete markup (<font>)'
+        3_LayoutTable: 'Layout tables must not contain summary attribute (or if supplied must be empty) nor caption'
+        NoSuchID: 'Link to an anchor that does not exist'
     url: URL
     website_name: 'Website name'
     website_url: 'Website url'
+format:
+    date: '%F% d, Y'
+    number:
+        decimal: .
+        grouping: ','
 home:
+    doc:
+        label: Documentation
+        link: 'https://confluence.smals.be/pages/viewpage.action?pageId=255626245'
     page_title: 'Audit reports'
     table:
-        base_url: base url
-        bootstrap: bootstrap
-        bootstrap_json: bootstrap+json
-        errors: errors
-        json: json
-        pages: pages
-        site: site
-        start: start
-        stop: stop
+        base_url: 'base url'
+        errors: Errors
+        excluded_base_url: excluded
+        pages: Pages
+        reports: Reports
+        site: Site
+        start: Start
+        stop: Stop
 month:
-    April: April
-    August: August
-    December: December
-    February: February
-    January: January
-    July: July
-    June: June
-    March: March
-    May: May
-    November: November
-    October: October
-    September: September
+    april: April
+    august: August
+    december: December
+    february: February
+    january: January
+    july: July
+    june: June
+    march: March
+    may: May
+    november: November
+    october: October
+    september: September

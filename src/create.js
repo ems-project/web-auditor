@@ -154,16 +154,18 @@ function parseErrorCode (errorCode) {
     const multipleErrors = techniqueCode.split(',')
     techniqueLabel = '<ul class="list-unstyled">'
     multipleErrors.forEach((code, index) => {
-      techniqueLabel += `<li>${makeTechniqueLink(code)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(code)}</li>`
+      if (!/^a/i.test(code)) {
+        techniqueLabel += `<li>${makeTechniqueLink(code)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(code)}</li>`
+      }
     })
-    techniqueLabelDetail = getTechniqueText(multipleErrors.join('_') + '_' + techniqueCodeDetail)
+    techniqueLabelDetail = htmlEntities(getTranslation('en', 'accessibility.techniques_help.' + techniqueCodeDetail))
     if(techniqueLabelDetail) {
       techniqueLabel += `<li class="text-muted"><i class="bi bi-backspace-reverse" aria-hidden="true"></i> ${techniqueLabelDetail}</li>`
     }
     techniqueLabel += '</ul>'
   } else {
     techniqueLabel = `${makeTechniqueLink(techniqueCode)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(techniqueCode)}`
-    techniqueLabelDetail = getTechniqueText(techniqueCode + '_' + techniqueCodeDetail)
+    techniqueLabelDetail = htmlEntities(getTranslation('en', 'accessibility.techniques_help.' + techniqueCodeDetail))
     if(techniqueLabelDetail) {
       techniqueLabel += `<span class="ms-3 text-muted"><i class="bi bi-backspace-reverse" aria-hidden="true"></i> ${techniqueLabelDetail}</span>`
     }
@@ -228,9 +230,8 @@ function readReport (reportPath) {
   })
 }
 function errorByPageItem (document, index) {
-  const collapseLink = `<a class="me-3 btn btn-sm btn-light border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">Details</a>`
   const pageLink = `<a class="text-break me-3" href="${document.url}" target="_blank">${document.url}</a>`
-  const errorsByPageCount = `<span class="ms-auto badge bg-danger">${document.pa11y.length}</span>`
+  const btnErrors = `<a class="ms-auto btn btn-danger badge border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">${document.pa11y.length}</a>`
 
   let detailsContent = ''
 
@@ -245,7 +246,7 @@ function errorByPageItem (document, index) {
 
   return `
         <li class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">${collapseLink} ${pageLink} ${errorsByPageCount}</div>
+            <div class="d-flex justify-content-between align-items-center">${pageLink} ${btnErrors}</div>
             <div class="collapse" id="collapse-${index}">
                 <ul class="list-unstyled mb-4">
                     <li>${detailsContent}</li>
