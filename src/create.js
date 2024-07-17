@@ -31,6 +31,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       let errorsByPage = ''
       let startTime
       let endTime
+      let brokenLinks = []
 
       files.forEach((file, index) => {
         const rawData = fs.readFileSync(path.join(directoryPath, file))
@@ -47,6 +48,9 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 
           errorsByPage += errorByPageItem(document, index)
         }
+        if (document.status_code === 404) {
+          brokenLinks.push(document.url)
+        }
 
         if (index === 0) {
           startTime = document.timestamp
@@ -57,9 +61,9 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       })
 
       const duration = getDuration(startTime, endTime)
-      const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime)
+      const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime, brokenLinks.length)
 
-      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage)
+      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, brokenLinks)
     } else {
       console.error(`File not found in ${directoryPath}`)
     }
@@ -121,19 +125,21 @@ function getDuration (startTime, endTime) {
 }
 
 // Audit-specific functions
-function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endTime) {
+function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endTime, brokenLinksCount) {
   let statsErrors
   if (totalIssuesCount > 0) {
-    statsErrors = `<strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}`
+    statsErrors = `<span><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</span>`
   } else {
-    statsErrors = '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
+    statsErrors = `<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>`
+  }
+  if (brokenLinksCount > 0) {
+    statsErrors += `<span class="text-muted ms-3">💀 <strong>${brokenLinksCount}</strong> broken link${brokenLinksCount !== 1 ? 's' : ''}</span>`
   }
 
-  const auditStats = `<span class="text-muted me-3" title="Audit duration"><i class="bi bi-stopwatch" aria-hidden="true"></i> <strong>${duration}</strong></span>
+  const auditStats = `<span class="text-muted mx-3" title="Audit duration"><i class="bi bi-stopwatch" aria-hidden="true"></i> <strong>${duration}</strong></span>
         <strong>${totalPages}</strong> audited pages on <strong>${getDate(endTime)}</strong>`
 
-  return `<p class="mb-md-0">${statsErrors}</p>
-  <p class="ms-md-auto mb-0">${auditStats}</p>`
+  return `${statsErrors} <p class="ms-md-auto mb-0">${auditStats}</p>`
 }
 function parseErrorCode (errorCode) {
   const errorCodeSplit = errorCode.split('.')
@@ -154,16 +160,18 @@ function parseErrorCode (errorCode) {
     const multipleErrors = techniqueCode.split(',')
     techniqueLabel = '<ul class="list-unstyled">'
     multipleErrors.forEach((code, index) => {
-      techniqueLabel += `<li>${makeTechniqueLink(code)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(code)}</li>`
+      if (!/^a/i.test(code)) {
+        techniqueLabel += `<li>${makeTechniqueLink(code)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(code)}</li>`
+      }
     })
-    techniqueLabelDetail = getTechniqueText(multipleErrors.join('_') + '_' + techniqueCodeDetail)
+    techniqueLabelDetail = htmlEntities(getTranslation('en', 'accessibility.techniques_help.' + techniqueCodeDetail))
     if(techniqueLabelDetail) {
       techniqueLabel += `<li class="text-muted"><i class="bi bi-backspace-reverse" aria-hidden="true"></i> ${techniqueLabelDetail}</li>`
     }
     techniqueLabel += '</ul>'
   } else {
     techniqueLabel = `${makeTechniqueLink(techniqueCode)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(techniqueCode)}`
-    techniqueLabelDetail = getTechniqueText(techniqueCode + '_' + techniqueCodeDetail)
+    techniqueLabelDetail = htmlEntities(getTranslation('en', 'accessibility.techniques_help.' + techniqueCodeDetail))
     if(techniqueLabelDetail) {
       techniqueLabel += `<span class="ms-3 text-muted"><i class="bi bi-backspace-reverse" aria-hidden="true"></i> ${techniqueLabelDetail}</span>`
     }
@@ -174,7 +182,7 @@ function parseErrorCode (errorCode) {
     label: techniqueLabel
   }
 }
-function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, duration) {
+function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brokenLinks) {
   const summaryTemplate = './src/Render/templates/summary.html'
   const summaryTemplateContent = fs.readFileSync(summaryTemplate, 'utf8')
 
@@ -194,13 +202,18 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, dura
         </li>`
   }
 
+  let brokenList = ''
+  brokenLinks.forEach(url => {
+    brokenList += `<li class="list-group-item"><a href="${url}">${url}</a></li>`
+  });
+
   const summaryData = {
     url: baseUrl,
     color: errorList.length ? 'danger' : 'success',
     stats,
-    duration,
     errorTypes: errorList,
-    errorsByPage
+    errorsByPage,
+    brokenList
   }
 
   const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
@@ -228,9 +241,8 @@ function readReport (reportPath) {
   })
 }
 function errorByPageItem (document, index) {
-  const collapseLink = `<a class="me-3 btn btn-sm btn-light border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">Details</a>`
   const pageLink = `<a class="text-break me-3" href="${document.url}" target="_blank">${document.url}</a>`
-  const errorsByPageCount = `<span class="ms-auto badge bg-danger">${document.pa11y.length}</span>`
+  const btnErrors = `<a class="ms-auto btn btn-danger badge border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">${document.pa11y.length}</a>`
 
   let detailsContent = ''
 
@@ -238,14 +250,14 @@ function errorByPageItem (document, index) {
     const technique = parseErrorCode(issue.code)
     detailsContent += `<div class="card rounded-2 mt-3 border-secondary">
             <div class="card-header py-1 bg-white">${issue.message}</div>
-            <div class="card-body py-2 bg-light"><pre class="mb-0">${htmlEntities(issue.context)}</pre></div>
+            <div class="card-body py-2 bg-light"><code class="text-body mb-0">${htmlEntities(issue.context)}</code></div>
             <small class="card-footer py-1 bg-white d-flex">${technique.label}</small>
         </div>`
   })
 
   return `
         <li class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">${collapseLink} ${pageLink} ${errorsByPageCount}</div>
+            <div class="d-flex justify-content-between align-items-center">${pageLink} ${btnErrors}</div>
             <div class="collapse" id="collapse-${index}">
                 <ul class="list-unstyled mb-4">
                     <li>${detailsContent}</li>
