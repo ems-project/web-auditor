@@ -48,8 +48,11 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 
           errorsByPage += errorByPageItem(document, index)
         }
-        if (document.status_code === 404) {
-          brokenLinks.push(document.url)
+        if (document.status_code >= 404) {
+          brokenLinks.push({
+            url: document.url,
+            status_code: document.status_code
+          })
         }
 
         if (index === 0) {
@@ -203,8 +206,8 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
   }
 
   let brokenList = ''
-  brokenLinks.forEach(url => {
-    brokenList += `<li class="list-group-item"><a href="${url}">${url}</a></li>`
+  brokenLinks.forEach(link => {
+    brokenList += `<li class="list-group-item">${link.status_code}: <a href="${link.url}" target="_blank">${link.url}</a></li>`
   })
 
   const summaryData = {
