@@ -90,6 +90,7 @@ const crawler = new PuppeteerCrawler({
           if (url.pathname.endsWith('.png')) return false
           if (url.pathname.endsWith('.xsd')) return false
           if (url.pathname.endsWith('.txt')) return false
+          if (url.pathname.endsWith('.mp4')) return false
 
           const shasum = crypto.createHash('sha1')
           shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
