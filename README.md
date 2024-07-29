@@ -35,7 +35,7 @@ node src/audit.js https://elasticms.fgov.be
 Running an audit (using audit.js) on the URL before executing create.js is mandatory.
 
 ```shell
-node src/create.js  https://elasticms.fgov.be/
+node src/create.js  https://elasticms.fgov.be
 ```
 
 ## Upload
@@ -62,7 +62,7 @@ Caution: this script does not currently give live feedback. Check the elasticms 
 The audit base url is mandatory in order to identify the right dataset to upload.
 
 ```shell
-node src/clean-out.js  https://elasticms.fgov.be/
+node src/clean-out.js  https://elasticms.fgov.be
 ```
 
 ## All in one
@@ -70,5 +70,5 @@ node src/clean-out.js  https://elasticms.fgov.be/
 A shell script, at the root, is available to audit, upload and clean a website with a single command:
 
 ```shell
-./audit.sh  https://elasticms.fgov.be/
+./audit.sh  https://elasticms.fgov.be
 ```

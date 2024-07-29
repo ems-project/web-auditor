@@ -31,13 +31,13 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       let errorsByPage = ''
       let startTime
       let endTime
-      let brokenLinks = []
+      const brokenLinks = []
 
       files.forEach((file, index) => {
         const rawData = fs.readFileSync(path.join(directoryPath, file))
         const document = JSON.parse(rawData)
 
-        if (document.status_code === 200 && document.pa11y.length > 0) {
+        if (document.status_code === 200 && undefined !== document.pa11y && document.pa11y.length > 0) {
           totalIssuesCount += document.pa11y.length
           pagesWithIssues++
 
@@ -48,8 +48,12 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 
           errorsByPage += errorByPageItem(document, index)
         }
-        if (document.status_code === 404) {
-          brokenLinks.push(document.url)
+        if (document.status_code >= 404) {
+          brokenLinks.push({
+            url: document.url,
+            status_code: document.status_code,
+            referer: document.referer
+          })
         }
 
         if (index === 0) {
@@ -130,7 +134,7 @@ function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endT
   if (totalIssuesCount > 0) {
     statsErrors = `<span><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</span>`
   } else {
-    statsErrors = `<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>`
+    statsErrors = '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
   }
   if (brokenLinksCount > 0) {
     statsErrors += `<span class="text-muted ms-3">💀 <strong>${brokenLinksCount}</strong> broken link${brokenLinksCount !== 1 ? 's' : ''}</span>`
@@ -165,14 +169,14 @@ function parseErrorCode (errorCode) {
       }
     })
     techniqueLabelDetail = htmlEntities(getTranslation('en', 'accessibility.techniques_help.' + techniqueCodeDetail))
-    if(techniqueLabelDetail) {
+    if (techniqueLabelDetail) {
       techniqueLabel += `<li class="text-muted"><i class="bi bi-backspace-reverse" aria-hidden="true"></i> ${techniqueLabelDetail}</li>`
     }
     techniqueLabel += '</ul>'
   } else {
     techniqueLabel = `${makeTechniqueLink(techniqueCode)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(techniqueCode)}`
     techniqueLabelDetail = htmlEntities(getTranslation('en', 'accessibility.techniques_help.' + techniqueCodeDetail))
-    if(techniqueLabelDetail) {
+    if (techniqueLabelDetail) {
       techniqueLabel += `<span class="ms-3 text-muted"><i class="bi bi-backspace-reverse" aria-hidden="true"></i> ${techniqueLabelDetail}</span>`
     }
   }
@@ -203,9 +207,10 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
   }
 
   let brokenList = ''
-  brokenLinks.forEach(url => {
-    brokenList += `<li class="list-group-item"><a href="${url}">${url}</a></li>`
-  });
+  brokenLinks.forEach(link => {
+    const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank">First referer</a> &rarr; ` : ''
+    brokenList += `<li class="list-group-item">${link.status_code}:  ${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
+  })
 
   const summaryData = {
     url: baseUrl,

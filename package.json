@@ -17,15 +17,15 @@
   "license": "MIT",
   "dependencies": {
     "cli-progress": "^3.12.0",
-    "crawlee": "^3.10.3",
-    "dotenv": "^16.3.1",
+    "crawlee": "^3.11.1",
+    "dotenv": "^16.4.5",
     "fs": "^0.0.1-security",
     "js-yaml": "^4.1.0",
     "moment": "^2.30.1",
     "mustache": "^4.2.0",
     "pa11y": "^8.0.0",
     "path": "^0.12.7",
-    "puppeteer": "^22.10.0",
+    "puppeteer": "^22.14.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
