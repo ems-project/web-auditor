@@ -50,9 +50,6 @@ const crawler = new PuppeteerCrawler({
       })
 
       const headers = (await response).headers()
-      if (audit.issues.length > 0) {
-        log.info(`${audit.issues.length} errors with page ${request.loadedUrl} : '${data.meta_title}'`)
-      }
 
       let status = (await response).status()
       if (status === 304) {
@@ -62,13 +59,14 @@ const crawler = new PuppeteerCrawler({
       data.mimetype = headers['content-type']
       data.size = headers['content-length']
       data.pa11y = audit.issues.slice(0, 10)
-      await dataset.pushData(data)
       if (status === 200 && audit.issues.length > 0) {
         totalIssuesCount += audit.issues.length
         pagesWithIssuesCount++
       }
     } catch (err) {
       console.log(err)
+    } finally {
+      await dataset.pushData(data)
     }
     await enqueueLinks({
       transformRequestFunction (req) {
