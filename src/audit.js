@@ -32,11 +32,17 @@ const crawler = new PuppeteerCrawler({
     }
   ],
   async requestHandler ({ request, page, enqueueLinks, log }) {
+    const url = new URL(request.loadedUrl)
+    const data = {
+      url: request.loadedUrl,
+      host: url.hostname,
+      base_url: url.pathname,
+      timestamp: String.getTimestamp()
+    }
     try {
-      const metaTitle = await page.title()
-      const title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
-      const locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
-
+      data.meta_title = await page.title()
+      data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
+      data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
       const response = page.waitForResponse(request.loadedUrl)
       const audit = await pa11y(request.loadedUrl, {
         browser: page.browser(),
@@ -45,71 +51,62 @@ const crawler = new PuppeteerCrawler({
 
       const headers = (await response).headers()
       if (audit.issues.length > 0) {
-        log.info(`${audit.issues.length} errors with page ${request.loadedUrl} : '${metaTitle}'`)
+        log.info(`${audit.issues.length} errors with page ${request.loadedUrl} : '${data.meta_title}'`)
       }
 
-      const url = new URL(request.loadedUrl)
       let status = (await response).status()
       if (status === 304) {
         status = 200
       }
-      await dataset.pushData({
-        title,
-        meta_title: metaTitle,
-        url: request.loadedUrl,
-        pa11y: audit.issues.slice(0, 10),
-        host: url.hostname,
-        base_url: url.pathname,
-        status_code: status,
-        mimetype: headers['content-type'],
-        locale,
-        size: headers['content-length'],
-        timestamp: String.getTimestamp()
-      })
+      data.status_code = status
+      data.mimetype = headers['content-type']
+      data.size = headers['content-length']
+      data.pa11y = audit.issues.slice(0, 10)
+      await dataset.pushData(data)
       if (status === 200 && audit.issues.length > 0) {
         totalIssuesCount += audit.issues.length
         pagesWithIssuesCount++
       }
-      await enqueueLinks({
-        transformRequestFunction (req) {
-          const url = new URL(req.url)
-
-          if (url.pathname.endsWith('.pdf')) return false
-          if (url.pathname.endsWith('.doc')) return false
-          if (url.pathname.endsWith('.docx')) return false
-          if (url.pathname.endsWith('.xls')) return false
-          if (url.pathname.endsWith('.xlsx')) return false
-          if (url.pathname.endsWith('.zip')) return false
-          if (url.pathname.endsWith('.xlsm')) return false
-          if (url.pathname.endsWith('.xml')) return false
-          if (url.pathname.endsWith('.odt')) return false
-          if (url.pathname.endsWith('.dwg')) return false
-          if (url.pathname.endsWith('.jpeg')) return false
-          if (url.pathname.endsWith('.jpg')) return false
-          if (url.pathname.endsWith('.png')) return false
-          if (url.pathname.endsWith('.png')) return false
-          if (url.pathname.endsWith('.xsd')) return false
-          if (url.pathname.endsWith('.txt')) return false
-          if (url.pathname.endsWith('.mp4')) return false
-
-          const shasum = crypto.createHash('sha1')
-          shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
-          const hash = shasum.digest('hex')
-          if (hashes.includes(hash)) {
-            return false
-          }
-          hashes.push(hash)
-
-          return req
-        }
-      })
-      this.requestQueue.getInfo().then((info) => {
-        progressBar.update(info.handledRequestCount)
-        progressBar.setTotal(info.totalRequestCount)
-      })
     } catch (err) {
       console.log(err)
     }
+    await enqueueLinks({
+      transformRequestFunction (req) {
+        const url = new URL(req.url)
+
+        if (url.pathname.endsWith('.pdf')) return false
+        if (url.pathname.endsWith('.doc')) return false
+        if (url.pathname.endsWith('.docx')) return false
+        if (url.pathname.endsWith('.xls')) return false
+        if (url.pathname.endsWith('.xlsx')) return false
+        if (url.pathname.endsWith('.zip')) return false
+        if (url.pathname.endsWith('.xlsm')) return false
+        if (url.pathname.endsWith('.xml')) return false
+        if (url.pathname.endsWith('.odt')) return false
+        if (url.pathname.endsWith('.dwg')) return false
+        if (url.pathname.endsWith('.jpeg')) return false
+        if (url.pathname.endsWith('.jpg')) return false
+        if (url.pathname.endsWith('.png')) return false
+        if (url.pathname.endsWith('.png')) return false
+        if (url.pathname.endsWith('.xsd')) return false
+        if (url.pathname.endsWith('.txt')) return false
+        if (url.pathname.endsWith('.mp4')) return false
+
+        const shasum = crypto.createHash('sha1')
+        shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
+        const hash = shasum.digest('hex')
+        if (hashes.includes(hash)) {
+          return false
+        }
+        hashes.push(hash)
+
+        return req
+      }
+    })
+    this.requestQueue.getInfo().then((info) => {
+      progressBar.update(info.handledRequestCount)
+      progressBar.setTotal(info.totalRequestCount)
+    })
   },
   async failedRequestHandler ({ request }) {
     console.log(request)
