@@ -73,25 +73,6 @@ const crawler = new PuppeteerCrawler({
     await enqueueLinks({
       transformRequestFunction (req) {
         const url = new URL(req.url)
-
-        if (url.pathname.endsWith('.pdf')) return false
-        if (url.pathname.endsWith('.doc')) return false
-        if (url.pathname.endsWith('.docx')) return false
-        if (url.pathname.endsWith('.xls')) return false
-        if (url.pathname.endsWith('.xlsx')) return false
-        if (url.pathname.endsWith('.zip')) return false
-        if (url.pathname.endsWith('.xlsm')) return false
-        if (url.pathname.endsWith('.xml')) return false
-        if (url.pathname.endsWith('.odt')) return false
-        if (url.pathname.endsWith('.dwg')) return false
-        if (url.pathname.endsWith('.jpeg')) return false
-        if (url.pathname.endsWith('.jpg')) return false
-        if (url.pathname.endsWith('.png')) return false
-        if (url.pathname.endsWith('.png')) return false
-        if (url.pathname.endsWith('.xsd')) return false
-        if (url.pathname.endsWith('.txt')) return false
-        if (url.pathname.endsWith('.mp4')) return false
-
         const shasum = crypto.createHash('sha1')
         shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
         const hash = shasum.digest('hex')
