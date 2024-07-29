@@ -40,16 +40,8 @@ const crawler = new PuppeteerCrawler({
       timestamp: String.getTimestamp()
     }
     try {
-      data.meta_title = await page.title()
-      data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
-      data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
-      const response = page.waitForResponse(request.loadedUrl)
-      const audit = await pa11y(request.loadedUrl, {
-        browser: page.browser(),
-        page
-      })
-
-      const headers = (await response).headers()
+      const response = await page.goto(request.loadedUrl)
+      const headers = response.headers()
 
       let status = (await response).status()
       if (status === 304) {
@@ -58,10 +50,20 @@ const crawler = new PuppeteerCrawler({
       data.status_code = status
       data.mimetype = headers['content-type']
       data.size = headers['content-length']
-      data.pa11y = audit.issues.slice(0, 10)
-      if (status === 200 && audit.issues.length > 0) {
-        totalIssuesCount += audit.issues.length
-        pagesWithIssuesCount++
+
+      data.meta_title = await page.title()
+      if (data.mimetype.startsWith('text/html')) {
+        data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
+        data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
+        const audit = await pa11y(request.loadedUrl, {
+          browser: page.browser(),
+          page
+        })
+        data.pa11y = audit.issues.slice(0, 10)
+        if (status === 200 && audit.issues.length > 0) {
+          totalIssuesCount += audit.issues.length
+          pagesWithIssuesCount++
+        }
       }
     } catch (err) {
       console.log(err)
