@@ -8,6 +8,7 @@ const String = require('./Helpers/String')
 const baseUrl = args._[0]
 let datasetId = args._[1]
 const hashes = []
+const referers = []
 let dataset = null
 
 let pagesWithIssuesCount = 0
@@ -37,7 +38,8 @@ const crawler = new PuppeteerCrawler({
       url: request.loadedUrl,
       host: url.hostname,
       base_url: url.pathname,
-      timestamp: String.getTimestamp()
+      timestamp: String.getTimestamp(),
+      referer: referers[request.loadedUrl] ?? null
     }
     try {
       const response = await page.goto(request.loadedUrl)
@@ -80,6 +82,9 @@ const crawler = new PuppeteerCrawler({
           return false
         }
         hashes.push(hash)
+        if (!referers.includes(req.url)) {
+          referers[req.url] = request.loadedUrl
+        }
 
         return req
       }
