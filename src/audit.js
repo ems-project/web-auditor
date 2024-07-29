@@ -52,6 +52,9 @@ const crawler = new PuppeteerCrawler({
       data.status_code = status
       data.mimetype = headers['content-type']
       data.size = headers['content-length']
+      if (data.size) {
+        data.size = parseInt(data.size)
+      }
 
       data.meta_title = await page.title()
       if (data.mimetype.startsWith('text/html')) {
