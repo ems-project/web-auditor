@@ -66,7 +66,7 @@ const crawler = new PuppeteerCrawler({
         }
       }
     } catch (err) {
-      console.log(err)
+      data.error = err.message ?? 'This url encountered an unknown error'
     } finally {
       await dataset.pushData(data)
     }
