@@ -37,7 +37,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
         const rawData = fs.readFileSync(path.join(directoryPath, file))
         const document = JSON.parse(rawData)
 
-        if (document.status_code === 200 && document.pa11y.length > 0) {
+        if (document.status_code === 200 && undefined !== document.pa11y && document.pa11y.length > 0) {
           totalIssuesCount += document.pa11y.length
           pagesWithIssues++
 
@@ -51,7 +51,8 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
         if (document.status_code >= 404) {
           brokenLinks.push({
             url: document.url,
-            status_code: document.status_code
+            status_code: document.status_code,
+            referer: document.referer
           })
         }
 
@@ -207,7 +208,8 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
 
   let brokenList = ''
   brokenLinks.forEach(link => {
-    brokenList += `<li class="list-group-item">${link.status_code}: <a href="${link.url}" target="_blank">${link.url}</a></li>`
+    const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank">First referer</a> &rarr; ` : ''
+    brokenList += `<li class="list-group-item">${link.status_code}:  ${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
   })
 
   const summaryData = {
