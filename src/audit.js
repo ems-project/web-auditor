@@ -40,7 +40,8 @@ const crawler = new PuppeteerCrawler({
       host: url.hostname,
       base_url: url.pathname,
       timestamp: String.getTimestamp(),
-      referer: referers[request.url] ?? null
+      referer: referers[request.url] ?? null,
+      is_web: true
     }
     try {
       const response = await page.goto(request.loadedUrl)
@@ -106,7 +107,8 @@ const crawler = new PuppeteerCrawler({
       host: url.hostname,
       base_url: url.pathname,
       timestamp: String.getTimestamp(),
-      referer: referers[request.url] ?? null
+      referer: referers[request.url] ?? null,
+      is_web: false
     }
     await dataset.pushData(data)
   },
