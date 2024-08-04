@@ -98,7 +98,15 @@ const crawler = new PuppeteerCrawler({
     })
   },
   async failedRequestHandler ({ request }) {
-    console.log(request)
+    const url = new URL(request.url)
+    const data = {
+      url: request.url,
+      host: url.hostname,
+      base_url: url.pathname,
+      timestamp: String.getTimestamp(),
+      referer: referers[request.url] ?? null
+    }
+    await dataset.pushData(data)
   },
   headless: true,
   maxConcurrency: 100
