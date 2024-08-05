@@ -208,8 +208,8 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
 
   let brokenList = ''
   brokenLinks.forEach(link => {
-    const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank" class="ms-2 badge link-primary btn border-secondary">First referer</a> <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ` : ''
-    brokenList += `<li class="list-group-item"><span class="badge bg-danger">${link.status_code}</span>${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
+    const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank">First referer</a> &rarr; ` : ''
+    brokenList += `<li class="list-group-item">${link.status_code}:  ${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
   })
 
   const summaryData = {
@@ -249,14 +249,12 @@ function errorByPageItem (document, index) {
   const pageLink = `<a class="text-break me-3" href="${document.url}" target="_blank">${document.url}</a>`
   const btnErrors = `<a class="ms-auto btn btn-danger badge border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">${document.pa11y.length}</a>`
 
-  let mobileOnly = ''
   let detailsContent = ''
 
   document.pa11y.forEach(issue => {
     const technique = parseErrorCode(issue.code)
-    mobileOnly = (issue.flag === 'mobile') ? '<span class="badge text-bg-warning me-1">mobile only</span>' : ''
     detailsContent += `<div class="card rounded-2 mt-3 border-secondary">
-            <div class="card-header py-1 bg-white">${issue.message} ${mobileOnly}</div>
+            <div class="card-header py-1 bg-white">${issue.message}</div>
             <div class="card-body py-2 bg-light"><code class="text-body mb-0">${htmlEntities(issue.context)}</code></div>
             <small class="card-footer py-1 bg-white d-flex">${technique.label}</small>
         </div>`

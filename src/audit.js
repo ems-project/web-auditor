@@ -66,33 +66,9 @@ const crawler = new PuppeteerCrawler({
           browser: page.browser(),
           page
         })
-        const mobileAudit = await pa11y(request.loadedUrl, {
-          browser: page.browser(),
-          page,
-          viewport: {
-            width: 375,
-            height: 640,
-            deviceScaleFactor: 2,
-            isMobile: true
-          }
-        })
-        const combinedIssues = audit.issues.slice()
-
-        mobileAudit.issues.forEach(mobileIssue => {
-          const existsInDesktop = audit.issues.some(desktopIssue =>
-            desktopIssue.code === mobileIssue.code &&
-              desktopIssue.context === mobileIssue.context &&
-              desktopIssue.selector === mobileIssue.selector &&
-              desktopIssue.message === mobileIssue.message
-          )
-
-          if (!existsInDesktop) {
-            combinedIssues.push({ ...mobileIssue, flag: 'mobile' })
-          }
-        })
-        data.pa11y = combinedIssues.slice(0, 10)
-        if (status === 200 && combinedIssues.length > 0) {
-          totalIssuesCount += combinedIssues.length
+        data.pa11y = audit.issues.slice(0, 10)
+        if (status === 200 && audit.issues.length > 0) {
+          totalIssuesCount += audit.issues.length
           pagesWithIssuesCount++
         }
       }
