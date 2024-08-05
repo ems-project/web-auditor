@@ -208,8 +208,8 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
 
   let brokenList = ''
   brokenLinks.forEach(link => {
-    const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank">First referer</a> &rarr; ` : ''
-    brokenList += `<li class="list-group-item">${link.status_code}:  ${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
+    const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank" class="ms-2 badge link-primary btn border-secondary">First referer</a> <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ` : ''
+    brokenList += `<li class="list-group-item"><span class="badge bg-danger">${link.status_code}</span>${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
   })
 
   const summaryData = {
