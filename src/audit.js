@@ -36,10 +36,12 @@ const crawler = new PuppeteerCrawler({
     const url = new URL(request.loadedUrl)
     const data = {
       url: request.loadedUrl,
+      redirected: request.url !== request.loadedUrl,
       host: url.hostname,
       base_url: url.pathname,
       timestamp: String.getTimestamp(),
-      referer: referers[request.loadedUrl] ?? null
+      referer: referers[request.url] ?? null,
+      is_web: true
     }
     try {
       const response = await page.goto(request.loadedUrl)
@@ -98,7 +100,17 @@ const crawler = new PuppeteerCrawler({
     })
   },
   async failedRequestHandler ({ request }) {
-    console.log(request)
+    const url = new URL(request.url)
+    const data = {
+      url: request.url,
+      redirected: request.url !== request.loadedUrl,
+      host: url.hostname,
+      base_url: url.pathname,
+      timestamp: String.getTimestamp(),
+      referer: referers[request.url] ?? null,
+      is_web: false
+    }
+    await dataset.pushData(data)
   },
   headless: true,
   maxConcurrency: 100
