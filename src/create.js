@@ -249,12 +249,14 @@ function errorByPageItem (document, index) {
   const pageLink = `<a class="text-break me-3" href="${document.url}" target="_blank">${document.url}</a>`
   const btnErrors = `<a class="ms-auto btn btn-danger badge border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">${document.pa11y.length}</a>`
 
+  let mobileOnly = ''
   let detailsContent = ''
 
   document.pa11y.forEach(issue => {
     const technique = parseErrorCode(issue.code)
+    mobileOnly = (issue.flag === 'mobile') ? '<span class="badge text-bg-warning me-1">mobile only</span>' : ''
     detailsContent += `<div class="card rounded-2 mt-3 border-secondary">
-            <div class="card-header py-1 bg-white">${issue.message}</div>
+            <div class="card-header py-1 bg-white">${issue.message} ${mobileOnly}</div>
             <div class="card-body py-2 bg-light"><code class="text-body mb-0">${htmlEntities(issue.context)}</code></div>
             <small class="card-footer py-1 bg-white d-flex">${technique.label}</small>
         </div>`
