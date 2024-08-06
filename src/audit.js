@@ -90,7 +90,7 @@ const crawler = new PuppeteerCrawler({
             combinedIssues.push({ ...mobileIssue, flag: 'mobile' })
           }
         })
-        data.pa11y = combinedIssues.slice(0, 10)
+        data.pa11y = combinedIssues
         if (status === 200 && combinedIssues.length > 0) {
           totalIssuesCount += combinedIssues.length
           pagesWithIssuesCount++
