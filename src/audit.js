@@ -90,6 +90,12 @@ const crawler = new PuppeteerCrawler({
             combinedIssues.push({ ...mobileIssue, flag: 'mobile' })
           }
         })
+        combinedIssues.forEach((item) => {
+          delete item.runner
+          delete item.type
+          delete item.typeCode
+          delete item.runnerExtras
+        })
         data.pa11y = combinedIssues
         if (status === 200 && combinedIssues.length > 0) {
           totalIssuesCount += combinedIssues.length
