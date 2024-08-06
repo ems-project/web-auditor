@@ -29,6 +29,14 @@ const Process = require('./Helpers/Process');
   for (const file of files) {
     const rawData = fs.readFileSync(path.join(directoryPath, file))
     const document = JSON.parse(rawData)
+    if (Array.isArray(document.pa11y && document.pa11y)) {
+      document.pa11y = document.pa11y.slice(0, 100)
+      document.pa11y.slice(20).forEach((element) => {
+        delete element.context
+        delete element.message
+        delete element.selector
+      })
+    }
     const url = new URL(document.url)
     const sha1Sum = crypto.createHash('sha1')
     sha1Sum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
