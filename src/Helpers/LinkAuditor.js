@@ -21,9 +21,9 @@ module.exports = class LinkAuditor {
     }
     const url = new URL(href)
     switch (url.protocol) {
-      case 'http':
+      case 'http:':
         return this.#getHttp(href)
-      case 'https':
+      case 'https:':
         return this.#getHttps(href)
     }
     const data = {
