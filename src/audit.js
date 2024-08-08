@@ -62,6 +62,12 @@ const crawler = new PuppeteerCrawler({
       if (data.mimetype.startsWith('text/html')) {
         data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
+        let hrefs = await page.$$eval('[href], [src]', links => links.map(a => a.href ?? a.src))
+        hrefs = hrefs.filter(link => {
+          const linkUrl = new URL(link)
+          return linkUrl.host !== url.host || linkUrl.port !== url.port || linkUrl.protocol !== url.protocol
+        })
+        console.log(hrefs)
         const audit = await pa11y(request.loadedUrl, {
           browser: page.browser(),
           page
