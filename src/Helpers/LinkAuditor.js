@@ -37,10 +37,26 @@ module.exports = class LinkAuditor {
   }
 
   #getHttp (href) {
+    const self = this
     return new Promise(resolve => {
       try {
-        http.get(href, response => {
+        const req = http.get(href, {
+          timeout: 20_000
+        }, response => {
           resolve(this.#response(href, response))
+          req.destroy()
+        })
+        req.on('error', function (e) {
+          resolve(self.#error(href, e))
+          req.destroy()
+        })
+        req.on('timeout', function () {
+          resolve(self.#error(href, 'Timeout'))
+          req.destroy()
+        })
+        req.on('uncaughtException', function (e) {
+          resolve(self.#error(href, e))
+          req.destroy()
         })
       } catch (e) {
         resolve(this.#error(href, e))
@@ -49,10 +65,26 @@ module.exports = class LinkAuditor {
   }
 
   #getHttps (href) {
+    const self = this
     return new Promise(resolve => {
       try {
-        https.get(href, response => {
+        const req = https.get(href, {
+          timeout: 20_000
+        }, response => {
           resolve(this.#response(href, response))
+          req.destroy()
+        })
+        req.on('error', function (e) {
+          resolve(self.#error(href, e))
+          req.destroy()
+        })
+        req.on('timeout', function () {
+          resolve(self.#error(href, 'Timeout'))
+          req.destroy()
+        })
+        req.on('uncaughtException', function (e) {
+          resolve(self.#error(href, e))
+          req.destroy()
         })
       } catch (e) {
         resolve(this.#error(href, e))
