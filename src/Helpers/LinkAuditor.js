@@ -8,8 +8,9 @@ module.exports = class LinkAuditor {
   }
 
   async auditUrls (hrefs) {
+    const setHrefs = new Set(hrefs)
     const promises = []
-    hrefs.forEach(href => {
+    setHrefs.forEach(href => {
       promises.push(this.#addUrl(href))
     })
     return Promise.all(promises)
