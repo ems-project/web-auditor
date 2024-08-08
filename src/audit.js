@@ -4,12 +4,14 @@ const { PuppeteerCrawler, Dataset } = require('crawlee')
 const cliProgress = require('cli-progress')
 const crypto = require('crypto')
 const String = require('./Helpers/String')
+const LinkAuditor = require('./Helpers/LinkAuditor')
 
 const baseUrl = args._[0]
 let datasetId = args._[1]
 const hashes = []
 const referers = []
 let dataset = null
+const linkAuditor = new LinkAuditor()
 
 let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
@@ -67,7 +69,7 @@ const crawler = new PuppeteerCrawler({
           const linkUrl = new URL(link)
           return linkUrl.host !== url.host || linkUrl.port !== url.port || linkUrl.protocol !== url.protocol
         })
-        console.log(hrefs)
+        data.links = await linkAuditor.auditUrls(hrefs)
         const audit = await pa11y(request.loadedUrl, {
           browser: page.browser(),
           page
