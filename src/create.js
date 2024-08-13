@@ -10,12 +10,14 @@ const moment = require('moment')
 
 const args = require('yargs').argv
 const baseUrl = args._[0]
+let folderName = args._[1]
 
-let folderName = baseUrl
+if (undefined === baseUrl) {
+  console.log('The argument website to test is mandatory')
+  process.exit(-1)
+}
 if (undefined === folderName) {
-  folderName = 'default'
-} else {
-  folderName = folderName.replaceAll('/', '_').replaceAll(':', '')
+  folderName = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 
 const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderName);
