@@ -1,10 +1,15 @@
 'use strict'
 const https = require('node:https')
 const http = require('node:http')
+const fs = require('fs')
 module.exports = class LinkAuditor {
   #cacheHrefs
-  constructor () {
+  #ca
+  constructor (ca) {
     this.#cacheHrefs = []
+    if (ca) {
+      this.#ca = fs.readFileSync(ca)
+    }
   }
 
   async auditUrls (hrefs) {
@@ -69,7 +74,8 @@ module.exports = class LinkAuditor {
     return new Promise(resolve => {
       try {
         const req = https.get(href, {
-          timeout: 20_000
+          timeout: 20_000,
+          ca: self.#ca
         }, response => {
           resolve(this.#response(href, response))
           req.destroy()

@@ -8,10 +8,11 @@ const LinkAuditor = require('./Helpers/LinkAuditor')
 
 const baseUrl = args._[0]
 let datasetId = args._[1]
+const ca = args.ca ?? undefined
 const hashes = []
 const referers = []
 let dataset = null
-const linkAuditor = new LinkAuditor()
+const linkAuditor = new LinkAuditor(ca)
 
 let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
@@ -139,6 +140,7 @@ const crawler = new PuppeteerCrawler({
   },
   async failedRequestHandler ({ request }) {
     const url = new URL(request.url)
+    const curlStatus = await linkAuditor.auditUrls([request.url])
     const data = {
       url: request.url,
       redirected: request.url !== request.loadedUrl,
@@ -146,7 +148,8 @@ const crawler = new PuppeteerCrawler({
       base_url: url.pathname,
       timestamp: String.getTimestamp(),
       referer: referers[request.url] ?? null,
-      is_web: false
+      is_web: false,
+      status_code: curlStatus[0].status_code ?? 500
     }
     await dataset.pushData(data)
   },

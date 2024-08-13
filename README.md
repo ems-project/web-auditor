@@ -1,9 +1,10 @@
 # web-auditor
 
-This tools provides 3 scripts:
- * A script to perform an audit of a web site
- * A script to upload the last performed in an elasticms admin
- * A script to clean out old audit results
+This tools provides 4 scripts:
+ * A [script to perform an audit of a web site](#audit)
+ * A [script to see locally the outcome of the audit](#create-local-report)
+ * A [script to upload the last performed in an elasticms admin](#upload)
+ * A [script to clean out old audit results](#cleaning)
 
 The idea behind splitting the audit from the upload is that the audit is very network and cpu consuming.
 In those particular circumstances, the audit script might not work at first run. So run the audit until it passed, than launch the upload.
@@ -17,7 +18,7 @@ sudo apt-get install chromium-browser
 sudo apt-get install libx11-xcb1 libxcomposite1 libasound2 libatk1.0-0 libatk-bridge2.0-0 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6
 npm install
 ```
-Check Pupeteer document for your platform.
+Check Pupeteer documentation for your platform.
 
 ## Audit
 
@@ -71,4 +72,24 @@ A shell script, at the root, is available to audit, upload and clean a website w
 
 ```shell
 ./audit.sh  https://elasticms.fgov.be
+```
+
+## Script's arguments
+
+ * URL used to start the audit [mandatory]
+ * Dataset ID, used to identify the audit's dataset [not mandatory, by default generated with URL argument] 
+
+
+## Script's options
+
+ * --ca=/path/to/alt/root-ca.crt: used to specify the path to an alternative CA's certificate file  
+
+## How to
+
+### How to keep current results
+
+With the environment variable `CRAWLEE_PURGE_ON_START`:
+
+```shell
+CRAWLEE_PURGE_ON_START=0 node src/audit.js https://elasticms.fgov.be
 ```
