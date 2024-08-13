@@ -33,6 +33,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       let errorsByPage = ''
       let startTime
       let endTime
+      const brokenPages = []
       const brokenLinks = []
 
       files.forEach((file, index) => {
@@ -51,11 +52,23 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
           errorsByPage += errorByPageItem(document, index)
         }
         if (document.status_code >= 404) {
-          brokenLinks.push({
+          brokenPages.push({
             url: document.url,
             status_code: document.status_code,
             referer: document.referer
           })
+        }
+        if (document.links) {
+          for (const id in document.links) {
+            if (document.links[id].status_code >= 400) {
+              brokenLinks.push({
+                url: document.links[id].url,
+                status_code: document.links[id].status_code,
+                message: document.links[id].message,
+                referer: document.url
+              })
+            }
+          }
         }
 
         if (index === 0) {
@@ -67,9 +80,9 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       })
 
       const duration = getDuration(startTime, endTime)
-      const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime, brokenLinks.length)
+      const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime, brokenPages.length, brokenLinks.length)
 
-      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, brokenLinks)
+      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, brokenPages, brokenLinks)
     } else {
       console.error(`File not found in ${directoryPath}`)
     }
@@ -131,12 +144,15 @@ function getDuration (startTime, endTime) {
 }
 
 // Audit-specific functions
-function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endTime, brokenLinksCount) {
+function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endTime, brokenPagesCount, brokenLinksCount) {
   let statsErrors
   if (totalIssuesCount > 0) {
     statsErrors = `<span><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</span>`
   } else {
     statsErrors = '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
+  }
+  if (brokenPagesCount > 0) {
+    statsErrors += `<span class="text-muted ms-3">💀 <strong>${brokenPagesCount}</strong> broken page${brokenPagesCount !== 1 ? 's' : ''}</span>`
   }
   if (brokenLinksCount > 0) {
     statsErrors += `<span class="text-muted ms-3">💀 <strong>${brokenLinksCount}</strong> broken link${brokenLinksCount !== 1 ? 's' : ''}</span>`
@@ -188,7 +204,7 @@ function parseErrorCode (errorCode) {
     label: techniqueLabel
   }
 }
-function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brokenLinks) {
+function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brokenPages, brokenLinks) {
   const summaryTemplate = './src/Render/templates/summary.html'
   const summaryTemplateContent = fs.readFileSync(summaryTemplate, 'utf8')
 
@@ -208,10 +224,15 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
         </li>`
   }
 
-  let brokenList = ''
-  brokenLinks.forEach(link => {
+  let brokenPageList = ''
+  brokenPages.forEach(link => {
     const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank" class="ms-2 badge link-primary btn border-secondary">First referer</a> <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ` : ''
-    brokenList += `<li class="list-group-item"><span class="badge bg-danger">${link.status_code}</span>${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
+    brokenPageList += `<li class="list-group-item"><span class="badge bg-danger">${link.status_code}</span>${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
+  })
+
+  let brokenLinkList = ''
+  brokenLinks.forEach(link => {
+    brokenLinkList += `<li class="list-group-item"><span class="badge bg-danger">${link.status_code}: ${link.message}</span><a href="${link.referer}" target="_blank" class="ms-2 badge link-primary btn border-secondary">Source page</a> <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> <a href="${link.url}" target="_blank">${link.url}</a></li>`
   })
 
   const summaryData = {
@@ -220,7 +241,8 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
     stats,
     errorTypes: errorList,
     errorsByPage,
-    brokenList
+    brokenPageList,
+    brokenLinkList
   }
 
   const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
