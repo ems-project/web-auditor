@@ -74,6 +74,16 @@ A shell script, at the root, is available to audit, upload and clean a website w
 ./audit.sh  https://elasticms.fgov.be
 ```
 
+## Script's arguments
+
+ * URL used to start the audit [mandatory]
+ * Dataset ID, used to identify the audit's dataset [not mandatory, by default generated with URL argument] 
+
+
+## Script's options
+
+ * --ca=/path/to/alt/root-ca.crt: used to specify the path to an alternative CA's certificate file  
+
 ## How to
 
 ### How to keep current results
