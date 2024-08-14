@@ -65,12 +65,30 @@ const crawler = new PuppeteerCrawler({
       if (data.mimetype.startsWith('text/html')) {
         data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
-        let hrefs = await page.$$eval('[href], [src]', links => links.map(a => a.href ?? a.src))
-        hrefs = hrefs.filter(link => {
+        const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
+          const url = a.href ?? a.src
+          let text = a.innerText
+          if (text.length === 0) {
+            text = url.split('/').filter(path => path !== '').pop()
+          }
+          return {
+            text: text,
+            url: url
+          }
+        }))
+        const auditUrls = await linkAuditor.auditUrls(hrefs.map(link => link.url).filter(link => {
           const linkUrl = new URL(link)
           return linkUrl.host !== url.host || linkUrl.port !== url.port || linkUrl.protocol !== url.protocol
-        })
-        data.links = await linkAuditor.auditUrls(hrefs)
+        }))
+        for (const auditIndex in auditUrls) {
+          for (const hrefIndex in hrefs) {
+            if (auditUrls[auditIndex].url !== hrefs[hrefIndex].url) {
+              continue
+            }
+            hrefs[hrefIndex] = Object.assign(auditUrls[auditIndex], hrefs[hrefIndex])
+          }
+        }
+        data.links = hrefs
         const audit = await pa11y(request.loadedUrl, {
           browser: page.browser(),
           page
@@ -112,6 +130,7 @@ const crawler = new PuppeteerCrawler({
         }
       }
     } catch (err) {
+      console.log(err)
       data.error = err.message ?? 'This url encountered an unknown error'
     } finally {
       await dataset.pushData(data)
