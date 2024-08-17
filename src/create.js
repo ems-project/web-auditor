@@ -51,12 +51,15 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 
           errorsByPage += errorByPageItem(document, index)
         }
-        if (document.status_code >= brokenStatusCode) {
-          brokenLinks.push({
-            url: document.url,
-            status_code: document.status_code,
-            referer: document.referer
-          })
+        for (const linkId in document.links ?? []) {
+          const link = document.links[linkId]
+          if (link.status_code < brokenStatusCode) {
+            continue
+          }
+          brokenLinks[link.url] = {
+            url: link.url,
+            status_code: link.status_code
+          }
         }
 
         if (index === 0) {
