@@ -59,6 +59,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
           brokenLinks[link.url] = {
             url: link.url,
             status_code: link.status_code,
+            message: link.message,
             color: link.status_code < 300 ? 'success' : link.status_code < 400 ? 'info' : link.status_code < 500 ? 'warning' : 'danger',
             referrers: (brokenLinks[link.url] ?? { referrers: [] }).referrers.concat([{
               url: document.url,
@@ -218,10 +219,19 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
   }
 
   let brokenList = ''
-  brokenLinks.forEach(link => {
-    const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank" class="ms-2 badge link-primary btn border-secondary">First referer</a> <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ` : ''
-    brokenList += `<li class="list-group-item"><span class="badge bg-danger">${link.status_code}</span>${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
-  })
+  let index = 0
+  for (const url in brokenLinks) {
+    const link = brokenLinks[url]
+    let referrers = ''
+    for (const referrerId in link.referrers) {
+      const referrer = link.referrers[referrerId]
+      referrers += `<li>${referrer.text} <i class="bi bi-arrow-bar-left mx-2" aria-hidden="true"></i> <a href="${referrer.url}" target="_blank">${referrer.url}</a></li>`
+    }
+    const btnReferrers = `<a class="ms-auto btn btn-${link.color} badge border-secondary" data-bs-toggle="collapse" href="#collapse-referrers-${index}" role="button" aria-expanded="false" aria-controls="collapse-referrers-${index}">${link.referrers.length}</a>`
+    const collapseReferrers = `<div class="collapse" id="collapse-referrers-${index}"><ul class="list-unstyled my-2">${referrers}</ul></div>`
+    brokenList += `<li class="list-group-item"><div class="d-flex justify-content-between align-items-center"><span class="badge bg-${link.color}">${link.status_code}: ${link.message}</span> <a href="${link.url}" target="_blank" class="mx-2">${link.url}</a>${btnReferrers}</div>${collapseReferrers}</li>`
+    ++index
+  }
 
   const summaryData = {
     url: baseUrl,
