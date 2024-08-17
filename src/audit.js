@@ -35,7 +35,7 @@ const crawler = new PuppeteerCrawler({
       gotoOptions.navigationTimeoutSecs = 10
     }
   ],
-  async requestHandler ({ request, page, enqueueLinks, log }) {
+  async requestHandler ({ request, page, enqueueLinks }) {
     const url = new URL(request.loadedUrl)
     const data = {
       url: request.loadedUrl,
@@ -160,7 +160,8 @@ const crawler = new PuppeteerCrawler({
       timestamp: String.getTimestamp(),
       referer: referers[request.url] ?? null,
       is_web: false,
-      status_code: curlStatus[0].status_code ?? 500
+      status_code: curlStatus[0].status_code ?? 500,
+      mimetype: curlStatus[0].mimetype
     }
     return dataset.pushData(data)
   },
