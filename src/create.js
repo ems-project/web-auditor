@@ -58,7 +58,12 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
           }
           brokenLinks[link.url] = {
             url: link.url,
-            status_code: link.status_code
+            status_code: link.status_code,
+            color: link.status_code < 300 ? 'success' : link.status_code < 400 ? 'info' : link.status_code < 500 ? 'warning' : 'danger',
+            referrers: (brokenLinks[link.url] ?? { referrers: [] }).referrers.concat([{
+              url: document.url,
+              text: link.text
+            }])
           }
         }
 
