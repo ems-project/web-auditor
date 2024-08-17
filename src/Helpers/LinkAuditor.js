@@ -112,7 +112,8 @@ module.exports = class LinkAuditor {
     const data = {
       url: href,
       status_code: response.statusCode,
-      message: response.statusMessage
+      message: response.statusMessage,
+      mimetype: response.headers['content-type']
     }
     this.#cacheHrefs[href] = data
     return data
