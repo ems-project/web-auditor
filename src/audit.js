@@ -236,12 +236,11 @@ const crawler = new PuppeteerCrawler({
     dataset = await Dataset.open(datasetId)
   }
   await crawler.run([baseUrl])
+  progressBar.stop()
 
   if (crawler.stats.state.requestsFinished > 1) {
     logSummaryReport(totalIssuesCount, pagesWithIssuesCount, baseUrl)
   }
-
-  progressBar.stop()
 })()
 
 function logSummaryReport (totalIssuesCount, pagesWithIssuesCount, baseUrl) {
