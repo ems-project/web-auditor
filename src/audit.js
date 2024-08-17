@@ -47,20 +47,15 @@ const crawler = new PuppeteerCrawler({
       is_web: true
     }
     try {
-      const response = await page.goto(request.loadedUrl)
-      const headers = response.headers()
-
-      let status = (await response).status()
-      if (status === 304) {
-        status = 200
+      const urlAudit = await linkAuditor.auditUrls([request.loadedUrl])
+      if (urlAudit[0]) {
+        for (const field in urlAudit[0]) {
+          data[field] = urlAudit[0][field]
+        }
+      } else {
+        data.status_code = 500
+        data.error = 'Curl response not found'
       }
-      data.status_code = status
-      data.mimetype = headers['content-type']
-      data.size = headers['content-length']
-      if (data.size) {
-        data.size = parseInt(data.size)
-      }
-
       data.meta_title = await page.title()
       if (data.mimetype.startsWith('text/html')) {
         data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
@@ -100,8 +95,7 @@ const crawler = new PuppeteerCrawler({
             isMobile: true
           }
         })
-        const combinedIssues = audit.issues.slice()
-
+        const combinedIssues = audit.issues
         mobileAudit.issues.forEach(mobileIssue => {
           const existsInDesktop = audit.issues.some(desktopIssue =>
             desktopIssue.code === mobileIssue.code &&
@@ -110,18 +104,20 @@ const crawler = new PuppeteerCrawler({
               desktopIssue.message === mobileIssue.message
           )
 
-          if (!existsInDesktop) {
-            combinedIssues.push({ ...mobileIssue, flag: 'mobile' })
+          if (existsInDesktop) {
+            return
           }
+          combinedIssues.push({ ...mobileIssue, mobile: true })
         })
         combinedIssues.forEach((item) => {
           delete item.runner
           delete item.type
           delete item.typeCode
           delete item.runnerExtras
+          item.mobile = (item.mobile === true)
         })
         data.pa11y = combinedIssues
-        if (status === 200 && combinedIssues.length > 0) {
+        if (data.status_code === 200 && combinedIssues.length > 0) {
           totalIssuesCount += combinedIssues.length
           pagesWithIssuesCount++
         }
