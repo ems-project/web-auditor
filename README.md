@@ -82,7 +82,8 @@ A shell script, at the root, is available to audit, upload and clean a website w
 
 ## Script's options
 
- * --ca=/path/to/alt/root-ca.crt: used to specify the path to an alternative CA's certificate file  
+ * --ca=/path/to/alt/root-ca.crt: used to specify the path to an alternative CA's certificate file
+ * --status-code=200: Display all links with a return code above the one provided (only for the create.js script)
 
 ## How to
 

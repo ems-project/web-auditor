@@ -11,6 +11,7 @@ const moment = require('moment')
 const args = require('yargs').argv
 const baseUrl = args._[0]
 let folderName = args._[1]
+const brokenStatusCode = args['status-code'] ?? 404
 
 if (undefined === baseUrl) {
   console.log('The argument website to test is mandatory')
@@ -50,7 +51,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
 
           errorsByPage += errorByPageItem(document, index)
         }
-        if (document.status_code >= 404) {
+        if (document.status_code >= brokenStatusCode) {
           brokenLinks.push({
             url: document.url,
             status_code: document.status_code,
@@ -69,7 +70,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       const duration = getDuration(startTime, endTime)
       const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime, brokenLinks.length)
 
-      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, brokenLinks)
+      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode)
     } else {
       console.error(`File not found in ${directoryPath}`)
     }
@@ -188,7 +189,7 @@ function parseErrorCode (errorCode) {
     label: techniqueLabel
   }
 }
-function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brokenLinks) {
+function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode) {
   const summaryTemplate = './src/Render/templates/summary.html'
   const summaryTemplateContent = fs.readFileSync(summaryTemplate, 'utf8')
 
@@ -220,7 +221,8 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
     stats,
     errorTypes: errorList,
     errorsByPage,
-    brokenList
+    brokenList,
+    statusCode: brokenStatusCode
   }
 
   const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
