@@ -76,10 +76,7 @@ const crawler = new PuppeteerCrawler({
             url
           }
         }))
-        const auditUrls = await linkAuditor.auditUrls(hrefs.map(link => link.url).filter(link => {
-          const linkUrl = new URL(link)
-          return linkUrl.host !== url.host || linkUrl.port !== url.port || linkUrl.protocol !== url.protocol
-        }))
+        const auditUrls = await linkAuditor.auditUrls(hrefs.map(link => link.url))
         for (const auditIndex in auditUrls) {
           for (const hrefIndex in hrefs) {
             if (auditUrls[auditIndex].url !== hrefs[hrefIndex].url) {
