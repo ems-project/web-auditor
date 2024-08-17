@@ -129,8 +129,6 @@ const crawler = new PuppeteerCrawler({
     } catch (err) {
       data.status_code = data.status_code ?? 500
       data.error = err.message ?? 'This url encountered an unknown error'
-    } finally {
-      await dataset.pushData(data)
     }
     await enqueueLinks({
       transformRequestFunction (req) {
@@ -153,6 +151,7 @@ const crawler = new PuppeteerCrawler({
       progressBar.update(info.handledRequestCount)
       progressBar.setTotal(info.totalRequestCount)
     })
+    return dataset.pushData(data)
   },
   async failedRequestHandler ({ request }) {
     const url = new URL(request.url)
@@ -167,7 +166,7 @@ const crawler = new PuppeteerCrawler({
       is_web: false,
       status_code: curlStatus[0].status_code ?? 500
     }
-    await dataset.pushData(data)
+    return dataset.pushData(data)
   },
   headless: true,
   maxConcurrency: 100
