@@ -131,11 +131,30 @@ const crawler = new PuppeteerCrawler({
           return false
         }
         hashes.push(hash)
-        if (!referers.includes(req.url)) {
-          referers[req.url] = request.loadedUrl
+
+        const auditUrl = linkAuditor.getFromCache(req.url)
+        if (!auditUrl || !auditUrl.mimetype || auditUrl.mimetype.startsWith('text/html')) {
+          if (!referers.includes(req.url)) {
+            referers[req.url] = request.loadedUrl
+          }
+
+          return req
         }
 
-        return req
+        const data = {
+          url: req.url,
+          redirected: req.url !== req.loadedUrl,
+          host: url.hostname,
+          base_url: url.pathname,
+          timestamp: String.getTimestamp(),
+          is_web: true,
+          referer: referers[request.url] ?? null,
+          status_code: auditUrl.status_code ?? 500,
+          mimetype: auditUrl.mimetype
+        }
+        dataset.pushData(data)
+
+        return false
       }
     })
     this.requestQueue.getInfo().then((info) => {

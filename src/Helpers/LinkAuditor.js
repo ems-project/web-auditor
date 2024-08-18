@@ -21,6 +21,14 @@ module.exports = class LinkAuditor {
     return Promise.all(promises)
   }
 
+  getFromCache (href) {
+    if (this.#cacheHrefs[href]) {
+      return this.#cacheHrefs[href]
+    }
+
+    return false
+  }
+
   async auditUrl (href) {
     if (this.#cacheHrefs[href]) {
       return this.#cacheHrefs[href]
