@@ -28,11 +28,10 @@ const hostname = url.hostname.replace(/[^a-zA-Z0-9]/g, '_')
 const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderName);
 
 (async () => {
-  const errorsByPagePath = `./storage/reports/${hostname}-errors.html`
+  const errorsByPage = []
   if (fs.existsSync(directoryPath)) {
     const files = fs.readdirSync(directoryPath)
     const errorTypes = {}
-    fs.writeFileSync(errorsByPagePath, '', 'utf8')
 
     if (files.length > 0) {
       let totalIssuesCount = 0
@@ -59,10 +58,18 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
             errorTypes[code] ? errorTypes[code]++ : errorTypes[code] = 1
           })
 
-          fs.appendFile(errorsByPagePath, errorByPageItem(document, index), function (err) {
-            if (err) {
-              throw err
-            }
+          errorsByPage.push({
+            url: document.url,
+            index,
+            length: document.pa11y.length,
+            pa11y: document.pa11y.map(p => {
+              return {
+                message: p.message,
+                mobile: p.mobile,
+                context: p.context,
+                label: parseErrorCode(p.code).label
+              }
+            })
           })
         }
         for (const linkId in document.links ?? []) {
@@ -101,7 +108,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       }
       const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime, brokenLinks.length)
 
-      createSummaryReportHTML(baseUrl, warning, stats, errorTypes, errorsByPagePath, brokenLinks, brokenStatusCode)
+      createSummaryReportHTML(baseUrl, warning, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode)
     } else {
       console.error(`File not found in ${directoryPath}`)
     }
@@ -219,7 +226,7 @@ function parseErrorCode (errorCode) {
     label: techniqueLabel
   }
 }
-function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByPagePath, brokenLinks, brokenStatusCode) {
+function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode) {
   const summaryTemplate = './src/Render/templates/summary.html'
   const summaryTemplateContent = fs.readFileSync(summaryTemplate, 'utf8')
 
@@ -227,79 +234,32 @@ function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByP
     fs.mkdirSync('./storage/reports/', { recursive: true })
   }
 
-  let errorList = ''
-  for (const errorCode in errorTypes) {
-    const errorCount = errorTypes[errorCode]
-
-    const technique = parseErrorCode(errorCode)
-
-    errorList += `<li class="list-group-item d-flex justify-content-between align-items-center">
-            ${technique.label}
-            <span class="ms-auto badge bg-danger">${errorCount}</span>
-        </li>`
+  const summaryData = {
+    url: baseUrl,
+    color: errorTypes.length ? 'danger' : 'success',
+    stats,
+    errorTypes: Object.keys(errorTypes).map((index) => {
+      return {
+        label: parseErrorCode(index).label,
+        counter: errorTypes[index]
+      }
+    }),
+    errorsByPage,
+    statusCode: brokenStatusCode,
+    brokenLinks: Object.values(brokenLinks).map((element, index) => {
+      return { ...element, index, length: element.referrers.length }
+    }),
+    warning
   }
 
-  let brokenList = ''
-  const brokenListPath = `./storage/reports/${hostname}-broken-links.html`
-  fs.writeFileSync(brokenListPath, '', 'utf8')
-  let index = 0
-  for (const url in brokenLinks) {
-    const link = brokenLinks[url]
-    let referrers = ''
-    for (const referrerId in link.referrers) {
-      const referrer = link.referrers[referrerId]
-      referrers += `<li>${referrer.text} <i class="bi bi-arrow-bar-left mx-2" aria-hidden="true"></i> <a href="${referrer.url}" target="_blank">${referrer.url}</a></li>`
-    }
-    const btnReferrers = `<a class="ms-auto btn btn-${link.color} badge border-secondary" data-bs-toggle="collapse" href="#collapse-referrers-${index}" role="button" aria-expanded="false" aria-controls="collapse-referrers-${index}">${link.referrers.length}</a>`
-    const collapseReferrers = `<div class="collapse" id="collapse-referrers-${index}"><ul class="list-unstyled my-2">${referrers}</ul></div>`
-    brokenList += `<li class="list-group-item"><div class="d-flex justify-content-between align-items-center"><span class="badge bg-${link.color}">${link.status_code}: ${link.message}</span> <a href="${link.url}" target="_blank" class="mx-2">${link.url}</a>${btnReferrers}</div>${collapseReferrers}</li>`
-    ++index
-    if ((index % 200) === 0) {
-      fs.appendFile(brokenListPath, brokenList, function (err) {
-        if (err) {
-          throw err
-        }
-      })
-      brokenList = ''
-    }
-  }
+  const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
 
-  fs.appendFile(brokenListPath, brokenList, function (err) {
-    if (err) {
-      throw err
-    }
-  })
-  fs.readFile(errorsByPagePath, (err, errorData) => {
-    if (err) {
-      throw err
-    }
-    const errorContent = errorData.toString('utf8')
-    fs.readFile(brokenListPath, (err, brokenListData) => {
-      if (err) {
-        throw err
-      }
-      const brokenListContent = brokenListData.toString('utf8')
-      const summaryData = {
-        url: baseUrl,
-        color: errorList.length ? 'danger' : 'success',
-        stats,
-        errorTypes: errorList,
-        errorsByPage: errorContent,
-        brokenList: brokenListContent,
-        statusCode: brokenStatusCode,
-        warning
-      }
+  const reportPath = `./storage/reports/${hostname}-a11y.html`
 
-      const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
+  fs.writeFileSync(reportPath, renderedTemplate, 'utf8')
+  console.log(`The summary report has been successfully generated: ${reportPath}`)
 
-      const reportPath = `./storage/reports/${hostname}-a11y.html`
-
-      fs.writeFileSync(reportPath, renderedTemplate, 'utf8')
-      console.log(`The summary report has been successfully generated: ${reportPath}`)
-
-      readReport(reportPath)
-    })
-  })
+  readReport(reportPath)
 }
 function readReport (reportPath) {
   fs.readFile(reportPath, function (err, html) {
@@ -313,31 +273,4 @@ function readReport (reportPath) {
 
     console.log(`View the report locally: http://localhost:${PORT}`)
   })
-}
-function errorByPageItem (document, index) {
-  const pageLink = `<a class="text-break me-3" href="${document.url}" target="_blank">${document.url}</a>`
-  const btnErrors = `<a class="ms-auto btn btn-danger badge border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">${document.pa11y.length}</a>`
-
-  let mobileOnly = ''
-  let detailsContent = ''
-
-  document.pa11y.forEach(issue => {
-    const technique = parseErrorCode(issue.code)
-    mobileOnly = (issue.flag === 'mobile') ? '<span class="badge text-bg-warning me-1">mobile only</span>' : ''
-    detailsContent += `<div class="card rounded-2 mt-3 border-secondary">
-            <div class="card-header py-1 bg-white">${issue.message} ${mobileOnly}</div>
-            <div class="card-body py-2 bg-light"><code class="text-body mb-0">${htmlEntities(issue.context)}</code></div>
-            <small class="card-footer py-1 bg-white d-flex">${technique.label}</small>
-        </div>`
-  })
-
-  return `
-        <li class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">${pageLink} ${btnErrors}</div>
-            <div class="collapse" id="collapse-${index}">
-                <ul class="list-unstyled mb-4">
-                    <li>${detailsContent}</li>
-                </ul>
-            </div>
-        </li>`
 }
