@@ -147,6 +147,7 @@ const crawler = new PuppeteerCrawler({
       progressBar.update(info.handledRequestCount)
       progressBar.setTotal(info.totalRequestCount)
     })
+    page.close()
     return dataset.pushData(data)
   },
   async failedRequestHandler ({ request }) {
