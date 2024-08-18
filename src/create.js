@@ -32,7 +32,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
   if (fs.existsSync(directoryPath)) {
     const files = fs.readdirSync(directoryPath)
     const errorTypes = {}
-    fs.writeFileSync(errorsByPagePath, '')
+    fs.writeFileSync(errorsByPagePath, '', 'utf8')
 
     if (files.length > 0) {
       let totalIssuesCount = 0
@@ -240,6 +240,8 @@ function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByP
   }
 
   let brokenList = ''
+  const brokenListPath = `./storage/reports/${hostname}-broken-links.html`
+  fs.writeFileSync(brokenListPath, '', 'utf8')
   let index = 0
   for (const url in brokenLinks) {
     const link = brokenLinks[url]
@@ -252,7 +254,21 @@ function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByP
     const collapseReferrers = `<div class="collapse" id="collapse-referrers-${index}"><ul class="list-unstyled my-2">${referrers}</ul></div>`
     brokenList += `<li class="list-group-item"><div class="d-flex justify-content-between align-items-center"><span class="badge bg-${link.color}">${link.status_code}: ${link.message}</span> <a href="${link.url}" target="_blank" class="mx-2">${link.url}</a>${btnReferrers}</div>${collapseReferrers}</li>`
     ++index
+    if ((index % 200) === 0) {
+      fs.appendFile(brokenListPath, brokenList, function (err) {
+        if (err) {
+          throw err
+        }
+      })
+      brokenList = ''
+    }
   }
+
+  fs.appendFile(brokenListPath, brokenList, function (err) {
+    if (err) {
+      throw err
+    }
+  })
 
   const summaryData = {
     url: baseUrl,
@@ -260,7 +276,7 @@ function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByP
     stats,
     errorTypes: errorList,
     errorsByPage: fs.readFileSync(errorsByPagePath),
-    brokenList,
+    brokenList: fs.readFileSync(brokenListPath),
     statusCode: brokenStatusCode,
     warning
   }
