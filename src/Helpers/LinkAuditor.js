@@ -16,12 +16,12 @@ module.exports = class LinkAuditor {
     const setHrefs = new Set(hrefs)
     const promises = []
     setHrefs.forEach(href => {
-      promises.push(this.#addUrl(href))
+      promises.push(this.auditUrl(href))
     })
     return Promise.all(promises)
   }
 
-  async #addUrl (href) {
+  async auditUrl (href) {
     if (this.#cacheHrefs[href]) {
       return this.#cacheHrefs[href]
     }

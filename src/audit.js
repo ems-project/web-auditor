@@ -47,14 +47,9 @@ const crawler = new PuppeteerCrawler({
       is_web: true
     }
     try {
-      const urlAudit = await linkAuditor.auditUrls([request.loadedUrl])
-      if (urlAudit[0]) {
-        for (const field in urlAudit[0]) {
-          data[field] = urlAudit[0][field]
-        }
-      } else {
-        data.status_code = 500
-        data.error = 'Curl response not found'
+      const urlAudit = await linkAuditor.auditUrl(request.loadedUrl)
+      for (const field in urlAudit) {
+        data[field] = urlAudit[field]
       }
       data.meta_title = await page.title()
       if (data.mimetype.startsWith('text/html')) {
@@ -152,7 +147,7 @@ const crawler = new PuppeteerCrawler({
   },
   async failedRequestHandler ({ request }) {
     const url = new URL(request.url)
-    const curlStatus = await linkAuditor.auditUrls([request.url])
+    const curlAudit = await linkAuditor.auditUrl(request.url)
     const data = {
       url: request.url,
       redirected: request.url !== request.loadedUrl,
@@ -161,8 +156,8 @@ const crawler = new PuppeteerCrawler({
       timestamp: String.getTimestamp(),
       referer: referers[request.url] ?? null,
       is_web: false,
-      status_code: curlStatus[0].status_code ?? 500,
-      mimetype: curlStatus[0].mimetype
+      status_code: curlAudit.status_code ?? 500,
+      mimetype: curlAudit.mimetype
     }
     return dataset.pushData(data)
   },
