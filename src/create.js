@@ -11,6 +11,7 @@ const moment = require('moment')
 const args = require('yargs').argv
 const baseUrl = args._[0]
 let folderName = args._[1]
+const maxPages = args['max-pages'] ?? 5000
 const brokenStatusCode = args['status-code'] ?? 404
 
 if (undefined === baseUrl) {
@@ -37,6 +38,9 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       const brokenLinks = []
 
       files.forEach((file, index) => {
+        if (index > maxPages) {
+          return
+        }
         const rawData = fs.readFileSync(path.join(directoryPath, file))
         const document = JSON.parse(rawData)
 
@@ -142,11 +146,14 @@ function getDuration (startTime, endTime) {
 
 // Audit-specific functions
 function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endTime, brokenLinksCount) {
-  let statsErrors
+  let statsErrors = ''
+  if (totalPages > maxPages) {
+    statsErrors += `<div class="alert alert-warning" role="alert">This summary report is limited to the first ${maxPages} pages!</div>`
+  }
   if (totalIssuesCount > 0) {
-    statsErrors = `<span><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</span>`
+    statsErrors += `<span><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</span>`
   } else {
-    statsErrors = '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
+    statsErrors += '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
   }
   if (brokenLinksCount > 0) {
     statsErrors += `<span class="text-muted ms-3">💀 <strong>${brokenLinksCount}</strong> broken link${brokenLinksCount !== 1 ? 's' : ''}</span>`
