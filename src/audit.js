@@ -10,7 +10,6 @@ const baseUrl = args._[0]
 let datasetId = args._[1]
 const ca = args.ca ?? undefined
 const hashes = []
-const referers = []
 let dataset = null
 const linkAuditor = new LinkAuditor(ca)
 
@@ -43,7 +42,6 @@ const crawler = new PuppeteerCrawler({
       host: url.hostname,
       base_url: url.pathname,
       timestamp: String.getTimestamp(),
-      referer: referers[request.url] ?? null,
       is_web: true
     }
     try {
@@ -131,13 +129,8 @@ const crawler = new PuppeteerCrawler({
           return false
         }
         hashes.push(hash)
-
         const auditUrl = linkAuditor.getFromCache(req.url)
         if (!auditUrl || !auditUrl.mimetype || auditUrl.mimetype.startsWith('text/html')) {
-          if (!referers.includes(req.url)) {
-            referers[req.url] = request.loadedUrl
-          }
-
           return req
         }
 
@@ -148,7 +141,6 @@ const crawler = new PuppeteerCrawler({
           base_url: url.pathname,
           timestamp: String.getTimestamp(),
           is_web: true,
-          referer: referers[request.url] ?? null,
           status_code: auditUrl.status_code ?? 500,
           mimetype: auditUrl.mimetype
         }
@@ -173,7 +165,6 @@ const crawler = new PuppeteerCrawler({
       host: url.hostname,
       base_url: url.pathname,
       timestamp: String.getTimestamp(),
-      referer: referers[request.url] ?? null,
       is_web: false,
       status_code: curlAudit.status_code ?? 500,
       mimetype: curlAudit.mimetype
