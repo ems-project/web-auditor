@@ -22,17 +22,20 @@ if (undefined === folderName) {
   folderName = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 
+const url = new URL(baseUrl)
+const hostname = url.hostname.replace(/[^a-zA-Z0-9]/g, '_')
 const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderName);
 
 (async () => {
+  const errorsByPagePath = `./storage/reports/${hostname}-errors.html`
   if (fs.existsSync(directoryPath)) {
     const files = fs.readdirSync(directoryPath)
     const errorTypes = {}
+    fs.writeFileSync(errorsByPagePath, '')
 
     if (files.length > 0) {
       let totalIssuesCount = 0
       let pagesWithIssues = 0
-      let errorsByPage = ''
       let startTime
       let endTime
       const brokenLinks = []
@@ -53,7 +56,11 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
             errorTypes[code] ? errorTypes[code]++ : errorTypes[code] = 1
           })
 
-          errorsByPage += errorByPageItem(document, index)
+          fs.appendFile(errorsByPagePath, errorByPageItem(document, index), function (err) {
+            if (err) {
+              throw err
+            }
+          })
         }
         for (const linkId in document.links ?? []) {
           const link = document.links[linkId]
@@ -88,7 +95,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       }
       const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime, brokenLinks.length)
 
-      createSummaryReportHTML(baseUrl, warning, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode)
+      createSummaryReportHTML(baseUrl, warning, stats, errorTypes, errorsByPagePath, brokenLinks, brokenStatusCode)
     } else {
       console.error(`File not found in ${directoryPath}`)
     }
@@ -206,7 +213,7 @@ function parseErrorCode (errorCode) {
     label: techniqueLabel
   }
 }
-function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode) {
+function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByPagePath, brokenLinks, brokenStatusCode) {
   const summaryTemplate = './src/Render/templates/summary.html'
   const summaryTemplateContent = fs.readFileSync(summaryTemplate, 'utf8')
 
@@ -246,7 +253,7 @@ function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByP
     color: errorList.length ? 'danger' : 'success',
     stats,
     errorTypes: errorList,
-    errorsByPage,
+    errorsByPage: fs.readFileSync(errorsByPagePath),
     brokenList,
     statusCode: brokenStatusCode,
     warning
@@ -254,8 +261,6 @@ function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByP
 
   const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
 
-  const url = new URL(baseUrl)
-  const hostname = url.hostname.replace(/[^a-zA-Z0-9]/g, '_')
   const reportPath = `./storage/reports/${hostname}-a11y.html`
 
   fs.writeFileSync(reportPath, renderedTemplate, 'utf8')
