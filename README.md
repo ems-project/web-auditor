@@ -82,11 +82,11 @@ A shell script, at the root, is available to audit, upload and clean a website w
 
 ## Script's options
 
-All options can be passed to all WebAuditor scripts, but they aren't always always an effect on all scripts: 
+All options can be provided to all WebAuditor scripts, but they aren't always an effect on all scripts: 
 
  * --ca=/path/to/alt/root-ca.crt: used to specify the path to an alternative CA's certificate file
  * --status-code=200: Display all links with a return code above the one provided (only for the create.js script)
- * --max-pages=5000: Limit the summary overview to the first c audited pages (performance issue) (only for the create.js script). Try `--max-pages=` to load all pages.
+ * --max-pages=5000: Limit the summary overview to the first x audited pages (performance issue if the website contains too much A11Y issues and/or too much broken links) (only for the create.js script). Try `--max-pages=all` to load all pages.
 
 ## How to
 
