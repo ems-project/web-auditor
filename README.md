@@ -82,7 +82,7 @@ A shell script, at the root, is available to audit, upload and clean a website w
 
 ## Script's options
 
-All options can be provided to all WebAuditor scripts, but they aren't always an effect on all scripts: 
+All options can be provided to all WebAuditor scripts, but they don't always have an effect on all scripts: 
 
  * --ca=/path/to/alt/root-ca.crt: used to specify the path to an alternative CA's certificate file
  * --status-code=200: Display all links with a return code above the one provided (only for the create.js script)
