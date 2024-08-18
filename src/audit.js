@@ -27,6 +27,13 @@ if (undefined === datasetId) {
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 progressBar.start(1, 0)
 
+function isHtmlMimetype (mimetype) {
+  if (!mimetype) {
+    return false
+  }
+  return mimetype.startsWith('text/html') || mimetype.startsWith('application/xhtml')
+}
+
 const crawler = new PuppeteerCrawler({
   preNavigationHooks: [
     async (crawlingContext, gotoOptions) => {
@@ -50,7 +57,7 @@ const crawler = new PuppeteerCrawler({
         data[field] = urlAudit[field]
       }
       data.meta_title = await page.title()
-      if (data.mimetype.startsWith('text/html')) {
+      if (isHtmlMimetype(data.mimetype)) {
         data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
         const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
@@ -130,7 +137,7 @@ const crawler = new PuppeteerCrawler({
         }
         hashes.push(hash)
         const auditUrl = linkAuditor.getFromCache(req.url)
-        if (!auditUrl || !auditUrl.mimetype || auditUrl.mimetype.startsWith('text/html')) {
+        if (!auditUrl || (!auditUrl.mimetype && auditUrl.status_code < 400) || isHtmlMimetype(auditUrl.mimetype)) {
           return req
         }
 
@@ -142,7 +149,7 @@ const crawler = new PuppeteerCrawler({
           timestamp: String.getTimestamp(),
           is_web: true,
           status_code: auditUrl.status_code ?? 500,
-          mimetype: auditUrl.mimetype
+          mimetype: auditUrl.mimetype ?? null
         }
         dataset.pushData(data)
 

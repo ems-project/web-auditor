@@ -81,9 +81,14 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       })
 
       const duration = getDuration(startTime, endTime)
+
+      let warning = ''
+      if (files.length > maxPages) {
+        warning += `<div class="alert alert-warning" role="alert">This summary report is limited to the first ${maxPages} pages!</div>`
+      }
       const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime, brokenLinks.length)
 
-      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode)
+      createSummaryReportHTML(baseUrl, warning, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode)
     } else {
       console.error(`File not found in ${directoryPath}`)
     }
@@ -118,8 +123,7 @@ function getTranslation (language, key) {
 function getDate (timestamp) {
   const dateObj = moment(timestamp)
   // const dateFormat = dateObj.format("DD/MM/YYYY HH:mm");
-  const dateFormat = dateObj.format('DD/MM/YYYY')
-  return dateFormat
+  return dateObj.format('DD/MM/YYYY')
 }
 function getDuration (startTime, endTime) {
   const start = moment(startTime)
@@ -147,9 +151,6 @@ function getDuration (startTime, endTime) {
 // Audit-specific functions
 function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endTime, brokenLinksCount) {
   let statsErrors = ''
-  if (totalPages > maxPages) {
-    statsErrors += `<div class="alert alert-warning" role="alert">This summary report is limited to the first ${maxPages} pages!</div>`
-  }
   if (totalIssuesCount > 0) {
     statsErrors += `<span><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</span>`
   } else {
@@ -182,7 +183,7 @@ function parseErrorCode (errorCode) {
   if (techniqueCode.includes(',')) {
     const multipleErrors = techniqueCode.split(',')
     techniqueLabel = '<ul class="list-unstyled">'
-    multipleErrors.forEach((code, index) => {
+    multipleErrors.forEach((code) => {
       if (!/^a/i.test(code)) {
         techniqueLabel += `<li>${makeTechniqueLink(code)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(code)}</li>`
       }
@@ -205,7 +206,7 @@ function parseErrorCode (errorCode) {
     label: techniqueLabel
   }
 }
-function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode) {
+function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode) {
   const summaryTemplate = './src/Render/templates/summary.html'
   const summaryTemplateContent = fs.readFileSync(summaryTemplate, 'utf8')
 
@@ -247,7 +248,8 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
     errorTypes: errorList,
     errorsByPage,
     brokenList,
-    statusCode: brokenStatusCode
+    statusCode: brokenStatusCode,
+    warning
   }
 
   const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
