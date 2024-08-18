@@ -7,6 +7,7 @@ const fs = require('fs')
 const mustache = require('mustache')
 const yaml = require('js-yaml')
 const moment = require('moment')
+const cliProgress = require('cli-progress')
 
 const args = require('yargs').argv
 const baseUrl = args._[0]
@@ -40,6 +41,8 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       let endTime
       const brokenLinks = []
 
+      const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
+      progressBar.start(files.length, 0)
       files.forEach((file, index) => {
         if (index > maxPages) {
           return
@@ -85,7 +88,10 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
         if (index === files.length - 1) {
           endTime = document.timestamp
         }
+
+        progressBar.update(index + 1)
       })
+      progressBar.stop()
 
       const duration = getDuration(startTime, endTime)
 
