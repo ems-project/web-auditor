@@ -44,7 +44,7 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
       const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
       progressBar.start(files.length, 0)
       files.forEach((file, index) => {
-        if (index > maxPages) {
+        if (maxPages !== 'all' && index > maxPages) {
           return
         }
         const rawData = fs.readFileSync(path.join(directoryPath, file))

@@ -86,7 +86,7 @@ All options can be passed to all WebAuditor scripts, but they aren't always alwa
 
  * --ca=/path/to/alt/root-ca.crt: used to specify the path to an alternative CA's certificate file
  * --status-code=200: Display all links with a return code above the one provided (only for the create.js script)
- * --max-pages=5000: Limit the summary overview to the first c audited pages (performance issue) (only for the create.js script)
+ * --max-pages=5000: Limit the summary overview to the first c audited pages (performance issue) (only for the create.js script). Try `--max-pages=` to load all pages.
 
 ## How to
 
