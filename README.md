@@ -97,7 +97,7 @@ CRAWLEE_PURGE_ON_START=0 node src/audit.js https://elasticms.fgov.be
 
 ### Increase the memory available for Puppeteer
 
-By default, Crawlee is set to use only 25% of the available memory. You can update the configuration by setting the environment variable `CRAWLEE_AVAILABLE_MEMORY_RATIO`. I would recommend setting it to 0.8 or even 0.9
+By default, Crawlee is set to use only 25% of the available memory. You can update the configuration by setting the environment variable `CRAWLEE_AVAILABLE_MEMORY_RATIO`. I would recommend setting it to 0.8. Especially if you want to scan a large website (>5.000 pages)
 
 ```shell
 CRAWLEE_AVAILABLE_MEMORY_RATIO=0.8
