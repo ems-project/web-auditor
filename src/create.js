@@ -269,26 +269,37 @@ function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByP
       throw err
     }
   })
+  fs.readFile(errorsByPagePath, (err, errorData) => {
+    if (err) {
+      throw err
+    }
+    const errorContent = errorData.toString('utf8')
+    fs.readFile(brokenListPath, (err, brokenListData) => {
+      if (err) {
+        throw err
+      }
+      const brokenListContent = brokenListData.toString('utf8')
+      const summaryData = {
+        url: baseUrl,
+        color: errorList.length ? 'danger' : 'success',
+        stats,
+        errorTypes: errorList,
+        errorsByPage: errorContent,
+        brokenList: brokenListContent,
+        statusCode: brokenStatusCode,
+        warning
+      }
 
-  const summaryData = {
-    url: baseUrl,
-    color: errorList.length ? 'danger' : 'success',
-    stats,
-    errorTypes: errorList,
-    errorsByPage: fs.readFileSync(errorsByPagePath),
-    brokenList: fs.readFileSync(brokenListPath),
-    statusCode: brokenStatusCode,
-    warning
-  }
+      const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
 
-  const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
+      const reportPath = `./storage/reports/${hostname}-a11y.html`
 
-  const reportPath = `./storage/reports/${hostname}-a11y.html`
+      fs.writeFileSync(reportPath, renderedTemplate, 'utf8')
+      console.log(`The summary report has been successfully generated: ${reportPath}`)
 
-  fs.writeFileSync(reportPath, renderedTemplate, 'utf8')
-  console.log(`The summary report has been successfully generated: ${reportPath}`)
-
-  readReport(reportPath)
+      readReport(reportPath)
+    })
+  })
 }
 function readReport (reportPath) {
   fs.readFile(reportPath, function (err, html) {
