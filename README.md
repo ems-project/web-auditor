@@ -82,7 +82,11 @@ A shell script, at the root, is available to audit, upload and clean a website w
 
 ## Script's options
 
- * --ca=/path/to/alt/root-ca.crt: used to specify the path to an alternative CA's certificate file  
+All options can be provided to all WebAuditor scripts, but they don't always have an effect on all scripts: 
+
+ * `--ca=/path/to/alt/root-ca.crt`: used to specify the path to an alternative CA's certificate file
+ * `--status-code=200`: Display all links with a return code above the one provided (only for the create.js script)
+ * `--max-pages=5000`: Limit the summary overview to the first x audited pages (performance issue if the website contains too much A11Y issues and/or too much broken links) (only for the create.js script). Try `--max-pages=all` to load all pages.
 
 ## How to
 
@@ -92,4 +96,12 @@ With the environment variable `CRAWLEE_PURGE_ON_START`:
 
 ```shell
 CRAWLEE_PURGE_ON_START=0 node src/audit.js https://elasticms.fgov.be
+```
+
+### Increase the memory available for Puppeteer
+
+By default, Crawlee is set to use only 25% of the available memory. You can update the configuration by setting the environment variable `CRAWLEE_AVAILABLE_MEMORY_RATIO`. I would recommend setting it to 0.8. Especially if you want to scan a large website (>5.000 pages)
+
+```shell
+CRAWLEE_AVAILABLE_MEMORY_RATIO=0.8 node src/audit.js https://elasticms.fgov.be
 ```

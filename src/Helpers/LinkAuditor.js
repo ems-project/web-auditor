@@ -16,12 +16,20 @@ module.exports = class LinkAuditor {
     const setHrefs = new Set(hrefs)
     const promises = []
     setHrefs.forEach(href => {
-      promises.push(this.#addUrl(href))
+      promises.push(this.auditUrl(href))
     })
     return Promise.all(promises)
   }
 
-  async #addUrl (href) {
+  getFromCache (href) {
+    if (this.#cacheHrefs[href]) {
+      return this.#cacheHrefs[href]
+    }
+
+    return false
+  }
+
+  async auditUrl (href) {
     if (this.#cacheHrefs[href]) {
       return this.#cacheHrefs[href]
     }
@@ -112,7 +120,8 @@ module.exports = class LinkAuditor {
     const data = {
       url: href,
       status_code: response.statusCode,
-      message: response.statusMessage
+      message: response.statusMessage,
+      mimetype: response.headers['content-type']
     }
     this.#cacheHrefs[href] = data
     return data

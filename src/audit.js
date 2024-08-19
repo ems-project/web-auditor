@@ -10,7 +10,6 @@ const baseUrl = args._[0]
 let datasetId = args._[1]
 const ca = args.ca ?? undefined
 const hashes = []
-const referers = []
 let dataset = null
 const linkAuditor = new LinkAuditor(ca)
 
@@ -28,14 +27,26 @@ if (undefined === datasetId) {
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 progressBar.start(1, 0)
 
+function isHtmlMimetype (mimetype) {
+  if (!mimetype) {
+    return false
+  }
+  return mimetype.startsWith('text/html') || mimetype.startsWith('application/xhtml')
+}
+
 const crawler = new PuppeteerCrawler({
+  launchContext: {
+    launchOptions: {
+      ignoreHTTPSErrors: ca !== undefined
+    },
+  },
   preNavigationHooks: [
     async (crawlingContext, gotoOptions) => {
       gotoOptions.timeout = 20_000
       gotoOptions.navigationTimeoutSecs = 10
     }
   ],
-  async requestHandler ({ request, page, enqueueLinks, log }) {
+  async requestHandler ({ request, page, enqueueLinks }) {
     const url = new URL(request.loadedUrl)
     const data = {
       url: request.loadedUrl,
@@ -43,34 +54,38 @@ const crawler = new PuppeteerCrawler({
       host: url.hostname,
       base_url: url.pathname,
       timestamp: String.getTimestamp(),
-      referer: referers[request.url] ?? null,
       is_web: true
     }
     try {
-      const response = await page.goto(request.loadedUrl)
-      const headers = response.headers()
-
-      let status = (await response).status()
-      if (status === 304) {
-        status = 200
+      const urlAudit = await linkAuditor.auditUrl(request.loadedUrl)
+      for (const field in urlAudit) {
+        data[field] = urlAudit[field]
       }
-      data.status_code = status
-      data.mimetype = headers['content-type']
-      data.size = headers['content-length']
-      if (data.size) {
-        data.size = parseInt(data.size)
-      }
-
       data.meta_title = await page.title()
-      if (data.mimetype.startsWith('text/html')) {
+      if (isHtmlMimetype(data.mimetype)) {
         data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
-        let hrefs = await page.$$eval('[href], [src]', links => links.map(a => a.href ?? a.src))
-        hrefs = hrefs.filter(link => {
-          const linkUrl = new URL(link)
-          return linkUrl.host !== url.host || linkUrl.port !== url.port || linkUrl.protocol !== url.protocol
-        })
-        data.links = await linkAuditor.auditUrls(hrefs)
+        const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
+          const url = a.href ?? a.src
+          let text = a.innerText
+          if (text.length === 0) {
+            text = url.split('/').filter(path => path !== '').pop()
+          }
+          return {
+            text,
+            url
+          }
+        }))
+        const auditUrls = await linkAuditor.auditUrls(hrefs.map(link => link.url))
+        for (const auditIndex in auditUrls) {
+          for (const hrefIndex in hrefs) {
+            if (auditUrls[auditIndex].url !== hrefs[hrefIndex].url) {
+              continue
+            }
+            hrefs[hrefIndex] = Object.assign(auditUrls[auditIndex], hrefs[hrefIndex])
+          }
+        }
+        data.links = hrefs
         const audit = await pa11y(request.loadedUrl, {
           browser: page.browser(),
           page
@@ -85,8 +100,7 @@ const crawler = new PuppeteerCrawler({
             isMobile: true
           }
         })
-        const combinedIssues = audit.issues.slice()
-
+        const combinedIssues = audit.issues
         mobileAudit.issues.forEach(mobileIssue => {
           const existsInDesktop = audit.issues.some(desktopIssue =>
             desktopIssue.code === mobileIssue.code &&
@@ -95,26 +109,27 @@ const crawler = new PuppeteerCrawler({
               desktopIssue.message === mobileIssue.message
           )
 
-          if (!existsInDesktop) {
-            combinedIssues.push({ ...mobileIssue, flag: 'mobile' })
+          if (existsInDesktop) {
+            return
           }
+          combinedIssues.push({ ...mobileIssue, mobile: true })
         })
         combinedIssues.forEach((item) => {
           delete item.runner
           delete item.type
           delete item.typeCode
           delete item.runnerExtras
+          item.mobile = (item.mobile === true)
         })
         data.pa11y = combinedIssues
-        if (status === 200 && combinedIssues.length > 0) {
+        if (data.status_code === 200 && combinedIssues.length > 0) {
           totalIssuesCount += combinedIssues.length
           pagesWithIssuesCount++
         }
       }
     } catch (err) {
+      data.status_code = data.status_code ?? 500
       data.error = err.message ?? 'This url encountered an unknown error'
-    } finally {
-      await dataset.pushData(data)
     }
     await enqueueLinks({
       transformRequestFunction (req) {
@@ -126,32 +141,47 @@ const crawler = new PuppeteerCrawler({
           return false
         }
         hashes.push(hash)
-        if (!referers.includes(req.url)) {
-          referers[req.url] = request.loadedUrl
+        const auditUrl = linkAuditor.getFromCache(req.url)
+        if (!auditUrl || (!auditUrl.mimetype && auditUrl.status_code < 400) || isHtmlMimetype(auditUrl.mimetype)) {
+          return req
         }
 
-        return req
+        const data = {
+          url: req.url,
+          redirected: req.url !== req.loadedUrl,
+          host: url.hostname,
+          base_url: url.pathname,
+          timestamp: String.getTimestamp(),
+          is_web: true,
+          status_code: auditUrl.status_code ?? 500,
+          mimetype: auditUrl.mimetype ?? null
+        }
+        dataset.pushData(data)
+
+        return false
       }
     })
     this.requestQueue.getInfo().then((info) => {
       progressBar.update(info.handledRequestCount)
       progressBar.setTotal(info.totalRequestCount)
     })
+    page.close()
+    return dataset.pushData(data)
   },
   async failedRequestHandler ({ request }) {
     const url = new URL(request.url)
-    const curlStatus = await linkAuditor.auditUrls([request.url])
+    const curlAudit = await linkAuditor.auditUrl(request.url)
     const data = {
       url: request.url,
       redirected: request.url !== request.loadedUrl,
       host: url.hostname,
       base_url: url.pathname,
       timestamp: String.getTimestamp(),
-      referer: referers[request.url] ?? null,
       is_web: false,
-      status_code: curlStatus[0].status_code ?? 500
+      status_code: curlAudit.status_code ?? 500,
+      mimetype: curlAudit.mimetype
     }
-    await dataset.pushData(data)
+    return dataset.pushData(data)
   },
   headless: true,
   maxConcurrency: 100
@@ -165,12 +195,11 @@ const crawler = new PuppeteerCrawler({
     dataset = await Dataset.open(datasetId)
   }
   await crawler.run([baseUrl])
+  progressBar.stop()
 
   if (crawler.stats.state.requestsFinished > 1) {
     logSummaryReport(totalIssuesCount, pagesWithIssuesCount, baseUrl)
   }
-
-  progressBar.stop()
 })()
 
 function logSummaryReport (totalIssuesCount, pagesWithIssuesCount, baseUrl) {

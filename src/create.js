@@ -7,10 +7,13 @@ const fs = require('fs')
 const mustache = require('mustache')
 const yaml = require('js-yaml')
 const moment = require('moment')
+const cliProgress = require('cli-progress')
 
 const args = require('yargs').argv
 const baseUrl = args._[0]
 let folderName = args._[1]
+const maxPages = args['max-pages'] ?? 5000
+const brokenStatusCode = args['status-code'] ?? 404
 
 if (undefined === baseUrl) {
   console.log('The argument website to test is mandatory')
@@ -20,9 +23,12 @@ if (undefined === folderName) {
   folderName = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 
+const url = new URL(baseUrl)
+const hostname = url.hostname.replace(/[^a-zA-Z0-9]/g, '_')
 const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderName);
 
 (async () => {
+  const errorsByPage = []
   if (fs.existsSync(directoryPath)) {
     const files = fs.readdirSync(directoryPath)
     const errorTypes = {}
@@ -30,12 +36,16 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
     if (files.length > 0) {
       let totalIssuesCount = 0
       let pagesWithIssues = 0
-      let errorsByPage = ''
       let startTime
       let endTime
       const brokenLinks = []
 
+      const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
+      progressBar.start(files.length, 0)
       files.forEach((file, index) => {
+        if (maxPages !== 'all' && index > maxPages) {
+          return
+        }
         const rawData = fs.readFileSync(path.join(directoryPath, file))
         const document = JSON.parse(rawData)
 
@@ -48,14 +58,35 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
             errorTypes[code] ? errorTypes[code]++ : errorTypes[code] = 1
           })
 
-          errorsByPage += errorByPageItem(document, index)
-        }
-        if (document.status_code >= 404) {
-          brokenLinks.push({
+          errorsByPage.push({
             url: document.url,
-            status_code: document.status_code,
-            referer: document.referer
+            index,
+            length: document.pa11y.length,
+            pa11y: document.pa11y.map(p => {
+              return {
+                message: p.message,
+                mobile: p.mobile,
+                context: p.context,
+                label: parseErrorCode(p.code).label
+              }
+            })
           })
+        }
+        for (const linkId in document.links ?? []) {
+          const link = document.links[linkId]
+          if (link.status_code < brokenStatusCode) {
+            continue
+          }
+          brokenLinks[link.url] = {
+            url: link.url,
+            status_code: link.status_code,
+            message: link.message,
+            color: link.status_code < 300 ? 'success' : link.status_code < 400 ? 'info' : link.status_code < 500 ? 'warning' : 'danger',
+            referrers: (brokenLinks[link.url] ?? { referrers: [] }).referrers.concat([{
+              url: document.url,
+              text: link.text
+            }])
+          }
         }
 
         if (index === 0) {
@@ -64,12 +95,20 @@ const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', folderNa
         if (index === files.length - 1) {
           endTime = document.timestamp
         }
+
+        progressBar.update(index + 1)
       })
+      progressBar.stop()
 
       const duration = getDuration(startTime, endTime)
+
+      let warning = ''
+      if (files.length > maxPages) {
+        warning += `<div class="alert alert-warning" role="alert">This summary report is limited to the first ${maxPages} pages!</div>`
+      }
       const stats = getStats(totalIssuesCount, pagesWithIssues, files.length, duration, endTime, brokenLinks.length)
 
-      createSummaryReportHTML(baseUrl, stats, errorTypes, errorsByPage, brokenLinks)
+      createSummaryReportHTML(baseUrl, warning, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode)
     } else {
       console.error(`File not found in ${directoryPath}`)
     }
@@ -104,8 +143,7 @@ function getTranslation (language, key) {
 function getDate (timestamp) {
   const dateObj = moment(timestamp)
   // const dateFormat = dateObj.format("DD/MM/YYYY HH:mm");
-  const dateFormat = dateObj.format('DD/MM/YYYY')
-  return dateFormat
+  return dateObj.format('DD/MM/YYYY')
 }
 function getDuration (startTime, endTime) {
   const start = moment(startTime)
@@ -132,11 +170,11 @@ function getDuration (startTime, endTime) {
 
 // Audit-specific functions
 function getStats (totalIssuesCount, pagesWithIssues, totalPages, duration, endTime, brokenLinksCount) {
-  let statsErrors
+  let statsErrors = ''
   if (totalIssuesCount > 0) {
-    statsErrors = `<span><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</span>`
+    statsErrors += `<span><strong>${totalIssuesCount}</strong> error${totalIssuesCount !== 1 ? 's' : ''} found on <strong>${pagesWithIssues}</strong> page${pagesWithIssues !== 1 ? 's' : ''}</span>`
   } else {
-    statsErrors = '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
+    statsErrors += '<span class="d-flex align-items-center"><span class="fs-2 me-2 lh-1">🥳</span> Yippee ki‐yay! No accessibility error found.</span>'
   }
   if (brokenLinksCount > 0) {
     statsErrors += `<span class="text-muted ms-3">💀 <strong>${brokenLinksCount}</strong> broken link${brokenLinksCount !== 1 ? 's' : ''}</span>`
@@ -165,7 +203,7 @@ function parseErrorCode (errorCode) {
   if (techniqueCode.includes(',')) {
     const multipleErrors = techniqueCode.split(',')
     techniqueLabel = '<ul class="list-unstyled">'
-    multipleErrors.forEach((code, index) => {
+    multipleErrors.forEach((code) => {
       if (!/^a/i.test(code)) {
         techniqueLabel += `<li>${makeTechniqueLink(code)} <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ${getTechniqueText(code)}</li>`
       }
@@ -188,7 +226,7 @@ function parseErrorCode (errorCode) {
     label: techniqueLabel
   }
 }
-function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brokenLinks) {
+function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByPage, brokenLinks, brokenStatusCode) {
   const summaryTemplate = './src/Render/templates/summary.html'
   const summaryTemplateContent = fs.readFileSync(summaryTemplate, 'utf8')
 
@@ -196,37 +234,28 @@ function createSummaryReportHTML (baseUrl, stats, errorTypes, errorsByPage, brok
     fs.mkdirSync('./storage/reports/', { recursive: true })
   }
 
-  let errorList = ''
-  for (const errorCode in errorTypes) {
-    const errorCount = errorTypes[errorCode]
-
-    const technique = parseErrorCode(errorCode)
-
-    errorList += `<li class="list-group-item d-flex justify-content-between align-items-center">
-            ${technique.label}
-            <span class="ms-auto badge bg-danger">${errorCount}</span>
-        </li>`
-  }
-
-  let brokenList = ''
-  brokenLinks.forEach(link => {
-    const firstReferer = (link.referer ?? null) ? `<a href="${link.referer}" target="_blank" class="ms-2 badge link-primary btn border-secondary">First referer</a> <i class="bi bi-arrow-bar-right mx-2" aria-hidden="true"></i> ` : ''
-    brokenList += `<li class="list-group-item"><span class="badge bg-danger">${link.status_code}</span>${firstReferer}<a href="${link.url}" target="_blank">${link.url}</a></li>`
-  })
-
   const summaryData = {
     url: baseUrl,
-    color: errorList.length ? 'danger' : 'success',
+    hasError: Object.keys(errorTypes).length > 0,
+    hasBrokenLinks: Object.keys(brokenLinks).length > 0,
+    color: Object.keys(errorTypes).length ? 'danger' : 'success',
     stats,
-    errorTypes: errorList,
+    errorTypes: Object.keys(errorTypes).map((index) => {
+      return {
+        label: parseErrorCode(index).label,
+        counter: errorTypes[index]
+      }
+    }),
     errorsByPage,
-    brokenList
+    statusCode: brokenStatusCode,
+    brokenLinks: Object.values(brokenLinks).map((element, index) => {
+      return { ...element, index, length: element.referrers.length }
+    }),
+    warning
   }
 
   const renderedTemplate = mustache.render(summaryTemplateContent, summaryData)
 
-  const url = new URL(baseUrl)
-  const hostname = url.hostname.replace(/[^a-zA-Z0-9]/g, '_')
   const reportPath = `./storage/reports/${hostname}-a11y.html`
 
   fs.writeFileSync(reportPath, renderedTemplate, 'utf8')
@@ -246,31 +275,4 @@ function readReport (reportPath) {
 
     console.log(`View the report locally: http://localhost:${PORT}`)
   })
-}
-function errorByPageItem (document, index) {
-  const pageLink = `<a class="text-break me-3" href="${document.url}" target="_blank">${document.url}</a>`
-  const btnErrors = `<a class="ms-auto btn btn-danger badge border-secondary" data-bs-toggle="collapse" href="#collapse-${index}" role="button" aria-expanded="false" aria-controls="collapse-${index}">${document.pa11y.length}</a>`
-
-  let mobileOnly = ''
-  let detailsContent = ''
-
-  document.pa11y.forEach(issue => {
-    const technique = parseErrorCode(issue.code)
-    mobileOnly = (issue.flag === 'mobile') ? '<span class="badge text-bg-warning me-1">mobile only</span>' : ''
-    detailsContent += `<div class="card rounded-2 mt-3 border-secondary">
-            <div class="card-header py-1 bg-white">${issue.message} ${mobileOnly}</div>
-            <div class="card-body py-2 bg-light"><code class="text-body mb-0">${htmlEntities(issue.context)}</code></div>
-            <small class="card-footer py-1 bg-white d-flex">${technique.label}</small>
-        </div>`
-  })
-
-  return `
-        <li class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">${pageLink} ${btnErrors}</div>
-            <div class="collapse" id="collapse-${index}">
-                <ul class="list-unstyled mb-4">
-                    <li>${detailsContent}</li>
-                </ul>
-            </div>
-        </li>`
 }
