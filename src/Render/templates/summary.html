@@ -68,7 +68,7 @@
                     {{#brokenLinks}}
                         <li class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge text-bg-{{color}}">{{status_code}}: {{message}}</span>
+                                <span class="badge text-bg-{{color}}" title="{{message}}">{{status_code}}</span>
                                 <a href="{{url}}" target="_blank" class="mx-2">{{url}}</a>
                                 <a class="ms-auto btn badge text-bg-{{color}} border-secondary" data-bs-toggle="collapse" href="#collapse-referrers-{{index}}" role="button" aria-expanded="false" aria-controls="collapse-referrers-{{index}}">{{length}}</a>
                             </div>
