@@ -35,6 +35,11 @@ function isHtmlMimetype (mimetype) {
 }
 
 const crawler = new PuppeteerCrawler({
+  launchContext: {
+    launchOptions: {
+      ignoreHTTPSErrors: ca !== undefined
+    },
+  },
   preNavigationHooks: [
     async (crawlingContext, gotoOptions) => {
       gotoOptions.timeout = 20_000
