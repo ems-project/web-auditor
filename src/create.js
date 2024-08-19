@@ -238,7 +238,7 @@ function createSummaryReportHTML (baseUrl, warning, stats, errorTypes, errorsByP
     url: baseUrl,
     hasError: Object.keys(errorTypes).length > 0,
     hasBrokenLinks: Object.keys(brokenLinks).length > 0,
-    color: errorTypes.length ? 'danger' : 'success',
+    color: Object.keys(errorTypes).length ? 'danger' : 'success',
     stats,
     errorTypes: Object.keys(errorTypes).map((index) => {
       return {
