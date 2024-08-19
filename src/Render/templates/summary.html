@@ -76,8 +76,9 @@
                                 <ul class="list-unstyled my-2">
                                     {{#referrers}}
                                         <li>
-                                            {{text}}
-                                            <i class="bi bi-arrow-bar-left mx-2" aria-hidden="true"></i>
+                                            <span class="badge border text-bg-light">&lt;{{type}}&gt;</span>
+                                            <span>{{text}}</span>
+                                            <i class="bi bi-arrow-bar-left me-2" aria-hidden="true"></i>
                                             <a href="{{url}}" target="_blank">{{url}}</a>
                                         </li>
                                     {{/referrers}}
