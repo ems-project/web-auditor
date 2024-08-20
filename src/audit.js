@@ -73,18 +73,7 @@ const crawler = new PuppeteerCrawler({
           const url = a.href ?? a.src
           let text = ''
           const type = a.tagName.toLowerCase()
-
-          if (type === 'a') {
-            text = (a.innerText ?? '').trim()
-            if (text === '') {
-              const img = a.querySelector('img')
-              if (img && img.alt) {
-                text = `${img.alt}`
-              }
-            }
-          } else if (type === 'img' && a.alt) {
-            text = `${a.alt}`
-          }
+          text = (a.innerText ?? '').trim()
           return {
             type,
             text,
