@@ -75,19 +75,15 @@ const crawler = new PuppeteerCrawler({
           const type = a.tagName.toLowerCase()
 
           if (type === 'a') {
-            const img = a.querySelector('img')
-            if (img && img.alt) {
-              text = `"${img.alt}"`
-            } else {
-              text = `"${a.innerText.trim()}"`
+            text = (a.innerText ?? '').trim()
+            if (text === '') {
+              const img = a.querySelector('img')
+              if (img && img.alt) {
+                text = `${img.alt}`
+              }
             }
-          }
-          if (text.length === 0) {
-            if (type === 'link' && a.rel) {
-              text = a.rel
-            } else if (type === 'img' && a.alt) {
-              text = `"${a.alt}"`
-            }
+          } else if (type === 'img' && a.alt) {
+            text = `${a.alt}`
           }
           return {
             type,
