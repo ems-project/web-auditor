@@ -84,7 +84,7 @@ A shell script, at the root, is available to audit, upload and clean a website w
 
 All options can be provided to all WebAuditor scripts, but they don't always have an effect on all scripts: 
 
- * `--ca=/path/to/alt/root-ca.crt`: used to specify the path to an alternative CA's certificate file
+ * `--ignore-ssl=true`: used to ignore SSL errors
  * `--status-code=200`: Display all links with a return code above the one provided (only for the create.js script)
  * `--max-pages=5000`: Limit the summary overview to the first x audited pages (performance issue if the website contains too much A11Y issues and/or too much broken links) (only for the create.js script). Try `--max-pages=all` to load all pages.
 
@@ -106,8 +106,3 @@ By default, Crawlee is set to use only 25% of the available memory. You can upda
 CRAWLEE_AVAILABLE_MEMORY_RATIO=0.8 node src/audit.js https://elasticms.fgov.be
 ```
 
-### Ignore invalid self-signed ssl certificate in external links
-
-```shell
-NODE_TLS_REJECT_UNAUTHORIZED=0 node src/audit.js https://elasticms.fgov.be
-```

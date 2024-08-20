@@ -8,6 +8,7 @@ const LinkAuditor = require('./Helpers/LinkAuditor')
 
 const baseUrl = args._[0]
 let datasetId = args._[1]
+const ignoreSsl = args['ignore-ssl']
 const hashes = []
 let dataset = null
 const linkAuditor = new LinkAuditor()
@@ -23,6 +24,9 @@ if (undefined === datasetId) {
   datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 const origin = (new URL(baseUrl)).origin
+if (ignoreSsl) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+}
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 progressBar.start(1, 0)
@@ -37,7 +41,7 @@ function isHtmlMimetype (mimetype) {
 const crawler = new PuppeteerCrawler({
   launchContext: {
     launchOptions: {
-      ignoreHTTPSErrors: ca !== undefined
+      ignoreHTTPSErrors: ignoreSsl
     }
   },
   preNavigationHooks: [
