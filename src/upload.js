@@ -29,13 +29,19 @@ const Process = require('./Helpers/Process');
   for (const file of files) {
     const rawData = fs.readFileSync(path.join(directoryPath, file))
     const document = JSON.parse(rawData)
-    if (Array.isArray(document.pa11y && document.pa11y)) {
-      document.pa11y = document.pa11y.slice(0, 100)
-      document.pa11y.slice(20).forEach((element) => {
-        delete element.context
-        delete element.message
-        delete element.selector
+    if (document.pa11y && Array.isArray(document.pa11y)) {
+      document.pa11y = document.pa11y.filter(error => !error.mobile).map((p, index) => {
+        delete p.mobile
+        if (index > 10) {
+          delete p.message
+          delete p.context
+          delete p.selector
+        }
+        return p
       })
+    }
+    if (document.links && Array.isArray(document.links)) {
+      document.links = document.links.filter(link => link.status_code >= 404 && link.status_code < 600)
     }
     const url = new URL(document.url)
     const sha1Sum = crypto.createHash('sha1')
@@ -47,7 +53,9 @@ const Process = require('./Helpers/Process');
         await coreApi.mergeDocument('audit', hash, document)
         break
       } catch (e) {
-        console.warn(`Impossible to update document ${hash} from file ${file}, retry after ${counter} sec`)
+        const pa11yCounter = (document.pa11y ?? []).length
+        const linksCounter = (document.pa11y ?? []).length
+        console.warn(`Impossible to update document ${hash} from file ${file}, retry after ${counter} sec (${pa11yCounter} pa11y & ${linksCounter})`)
         await Process.sleep(1000 * counter++)
       }
     }

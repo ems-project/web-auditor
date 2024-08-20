@@ -42,7 +42,7 @@ module.exports = class CoreApi {
 
   async mergeDocument (type, hash, document) {
     const options = Object.assign({}, this.options)
-    options.path = path.join(this.options.path, 'api', 'data', type, 'update', hash)
+    options.path = path.join(this.options.path, 'api', 'data', type, 'index', hash)
     await this._makeRequest(options, 'POST', document)
   }
 

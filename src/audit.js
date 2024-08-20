@@ -8,10 +8,11 @@ const LinkAuditor = require('./Helpers/LinkAuditor')
 
 const baseUrl = args._[0]
 let datasetId = args._[1]
-const ca = args.ca ?? undefined
+const ignoreSsl = args['ignore-ssl']
+const waitUntil = args['wait-until']
 const hashes = []
 let dataset = null
-const linkAuditor = new LinkAuditor(ca)
+const linkAuditor = new LinkAuditor()
 
 let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
@@ -22,6 +23,10 @@ if (undefined === baseUrl) {
 }
 if (undefined === datasetId) {
   datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
+}
+const origin = (new URL(baseUrl)).origin
+if (ignoreSsl) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 }
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
@@ -37,13 +42,16 @@ function isHtmlMimetype (mimetype) {
 const crawler = new PuppeteerCrawler({
   launchContext: {
     launchOptions: {
-      ignoreHTTPSErrors: ca !== undefined
+      ignoreHTTPSErrors: ignoreSsl
     }
   },
   preNavigationHooks: [
     async (crawlingContext, gotoOptions) => {
       gotoOptions.timeout = 20_000
       gotoOptions.navigationTimeoutSecs = 10
+      if (waitUntil) {
+        gotoOptions.waitUntil = waitUntil
+      }
     }
   ],
   async requestHandler ({ request, page, enqueueLinks }) {
@@ -67,24 +75,8 @@ const crawler = new PuppeteerCrawler({
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
         const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
           const url = a.href ?? a.src
-          let text = ''
+          const text = (a.innerText ?? '').trim()
           const type = a.tagName.toLowerCase()
-
-          if (type === 'a') {
-            const img = a.querySelector('img')
-            if (img && img.alt) {
-              text = `"${img.alt}"`
-            } else {
-              text = `"${a.innerText.trim()}"`
-            }
-          }
-          if (text.length === 0) {
-            if (type === 'link' && a.rel) {
-              text = a.rel
-            } else if (type === 'img' && a.alt) {
-              text = `"${a.alt}"`
-            }
-          }
           return {
             type,
             text,
@@ -149,6 +141,9 @@ const crawler = new PuppeteerCrawler({
     await enqueueLinks({
       transformRequestFunction (req) {
         const url = new URL(req.url)
+        if (url.origin !== origin) {
+          return false
+        }
         const shasum = crypto.createHash('sha1')
         shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
         const hash = shasum.digest('hex')

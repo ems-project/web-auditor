@@ -1,15 +1,9 @@
 'use strict'
-const https = require('node:https')
-const http = require('node:http')
-const fs = require('fs')
+const request = require('requestretry')
 module.exports = class LinkAuditor {
   #cacheHrefs
-  #ca
-  constructor (ca) {
+  constructor () {
     this.#cacheHrefs = []
-    if (ca) {
-      this.#ca = fs.readFileSync(ca)
-    }
   }
 
   async auditUrls (hrefs) {
@@ -36,9 +30,8 @@ module.exports = class LinkAuditor {
     const url = new URL(href)
     switch (url.protocol) {
       case 'http:':
-        return this.#getHttp(href)
       case 'https:':
-        return this.#getHttps(href)
+        return this.#request(href)
     }
     const data = {
       url: href,
@@ -49,59 +42,24 @@ module.exports = class LinkAuditor {
     return data
   }
 
-  #getHttp (href) {
+  #request (href) {
     const self = this
     return new Promise(resolve => {
       try {
-        const req = http.get(href, {
-          timeout: 20_000
-        }, response => {
-          resolve(this.#response(href, response))
-          req.destroy()
+        request({
+          url: href,
+          maxAttempts: 5,
+          retryDelay: 5000,
+          retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+        }, function (error, response) {
+          if (response) {
+            resolve(self.#response(href, response))
+          } else {
+            resolve(self.#error(href, error))
+          }
         })
-        req.on('error', function (e) {
-          resolve(self.#error(href, e))
-          req.destroy()
-        })
-        req.on('timeout', function () {
-          resolve(self.#error(href, 'Timeout'))
-          req.destroy()
-        })
-        req.on('uncaughtException', function (e) {
-          resolve(self.#error(href, e))
-          req.destroy()
-        })
-      } catch (e) {
-        resolve(this.#error(href, e))
-      }
-    })
-  }
-
-  #getHttps (href) {
-    const self = this
-    return new Promise(resolve => {
-      try {
-        const req = https.get(href, {
-          timeout: 20_000,
-          ca: self.#ca
-        }, response => {
-          resolve(this.#response(href, response))
-          req.destroy()
-        })
-        req.on('error', function (e) {
-          resolve(self.#error(href, e))
-          req.destroy()
-        })
-        req.on('timeout', function () {
-          resolve(self.#error(href, 'Timeout'))
-          req.destroy()
-        })
-        req.on('uncaughtException', function (e) {
-          resolve(self.#error(href, e))
-          req.destroy()
-        })
-      } catch (e) {
-        resolve(this.#error(href, e))
+      } catch (error) {
+        resolve(self.#error(href, error))
       }
     })
   }
