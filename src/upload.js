@@ -30,7 +30,7 @@ const Process = require('./Helpers/Process');
     const rawData = fs.readFileSync(path.join(directoryPath, file))
     const document = JSON.parse(rawData)
     if (document.pa11y && Array.isArray(document.pa11y)) {
-      document.pa11y = document.pa11y.slice(0, 100)
+      document.pa11y = document.pa11y.filter(error => !error.mobile).slice(0, 100)
       document.pa11y.slice(50).forEach((element) => {
         delete element.context
         delete element.message
