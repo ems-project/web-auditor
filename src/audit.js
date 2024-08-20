@@ -9,6 +9,7 @@ const LinkAuditor = require('./Helpers/LinkAuditor')
 const baseUrl = args._[0]
 let datasetId = args._[1]
 const ignoreSsl = args['ignore-ssl']
+const waitUntil = args['wait-until']
 const hashes = []
 let dataset = null
 const linkAuditor = new LinkAuditor()
@@ -48,6 +49,9 @@ const crawler = new PuppeteerCrawler({
     async (crawlingContext, gotoOptions) => {
       gotoOptions.timeout = 20_000
       gotoOptions.navigationTimeoutSecs = 10
+      if (waitUntil) {
+        gotoOptions.waitUntil = waitUntil
+      }
     }
   ],
   async requestHandler ({ request, page, enqueueLinks }) {
@@ -71,9 +75,8 @@ const crawler = new PuppeteerCrawler({
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
         const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
           const url = a.href ?? a.src
-          let text = ''
+          const text = (a.innerText ?? '').trim()
           const type = a.tagName.toLowerCase()
-          text = (a.innerText ?? '').trim()
           return {
             type,
             text,

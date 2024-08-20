@@ -87,6 +87,7 @@ All options can be provided to all WebAuditor scripts, but they don't always hav
  * `--ignore-ssl=true`: used to ignore SSL errors
  * `--status-code=200`: Display all links with a return code above the one provided (only for the create.js script)
  * `--max-pages=5000`: Limit the summary overview to the first x audited pages (performance issue if the website contains too much A11Y issues and/or too much broken links) (only for the create.js script). Try `--max-pages=all` to load all pages.
+ * `--wait-until=load`: If defined, the page audit will be initiated only after the provided event is triggered. Check this [blog page](https://cloudlayer.io/blog/puppeteer-waituntil-options/).
 
 ## How to
 
