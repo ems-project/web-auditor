@@ -38,7 +38,7 @@ const crawler = new PuppeteerCrawler({
   launchContext: {
     launchOptions: {
       ignoreHTTPSErrors: ca !== undefined
-    },
+    }
   },
   preNavigationHooks: [
     async (crawlingContext, gotoOptions) => {
@@ -67,11 +67,26 @@ const crawler = new PuppeteerCrawler({
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
         const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
           const url = a.href ?? a.src
-          let text = a.innerText
+          let text = ''
+          const type = a.tagName.toLowerCase()
+
+          if (type === 'a') {
+            const img = a.querySelector('img')
+            if (img && img.alt) {
+              text = `"${img.alt}"`
+            } else {
+              text = `"${a.innerText.trim()}"`
+            }
+          }
           if (text.length === 0) {
-            text = url.split('/').filter(path => path !== '').pop()
+            if (type === 'link' && a.rel) {
+              text = a.rel
+            } else if (type === 'img' && a.alt) {
+              text = `"${a.alt}"`
+            }
           }
           return {
+            type,
             text,
             url
           }

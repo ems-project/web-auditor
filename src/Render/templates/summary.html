@@ -30,7 +30,7 @@
                     {{#errorTypes}}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             {{{label}}}
-                            <span class="ms-auto badge bg-danger">{{counter}}</span>
+                            <span class="ms-auto badge text-bg-danger">{{counter}}</span>
                         </li>
                     {{/errorTypes}}
                 </ul>
@@ -42,7 +42,7 @@
                         <li class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
                                 <a class="text-break me-3" href="{{url}}" target="_blank">{{url}}</a>
-                                <a class="ms-auto btn btn-danger badge border-secondary collapsed" data-bs-toggle="collapse" href="#collapse-{{index}}" role="button" aria-expanded="false" aria-controls="collapse-{{index}}">{{length}}</a>
+                                <a class="ms-auto btn badge text-bg-danger border-secondary collapsed" data-bs-toggle="collapse" href="#collapse-{{index}}" role="button" aria-expanded="false" aria-controls="collapse-{{index}}">{{length}}</a>
                             </div>
                             <div class="collapse" id="collapse-{{index}}" style="">
                                 <ul class="list-unstyled mb-4">
@@ -68,16 +68,17 @@
                     {{#brokenLinks}}
                         <li class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-{{color}}">{{status_code}}: {{message}}</span>
+                                <span class="badge text-bg-{{color}}" title="{{message}}">{{status_code}}</span>
                                 <a href="{{url}}" target="_blank" class="mx-2">{{url}}</a>
-                                <a class="ms-auto btn btn-{{color}} badge border-secondary" data-bs-toggle="collapse" href="#collapse-referrers-{{index}}" role="button" aria-expanded="false" aria-controls="collapse-referrers-{{index}}">{{length}}</a>
+                                <a class="ms-auto btn badge text-bg-{{color}} border-secondary" data-bs-toggle="collapse" href="#collapse-referrers-{{index}}" role="button" aria-expanded="false" aria-controls="collapse-referrers-{{index}}">{{length}}</a>
                             </div>
                             <div class="collapse" id="collapse-referrers-{{index}}">
                                 <ul class="list-unstyled my-2">
                                     {{#referrers}}
                                         <li>
-                                            {{text}}
-                                            <i class="bi bi-arrow-bar-left mx-2" aria-hidden="true"></i>
+                                            <span class="badge border text-bg-light">&lt;{{type}}&gt;</span>
+                                            <span>{{text}}</span>
+                                            <i class="bi bi-arrow-bar-left me-2" aria-hidden="true"></i>
                                             <a href="{{url}}" target="_blank">{{url}}</a>
                                         </li>
                                     {{/referrers}}
