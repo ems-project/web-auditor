@@ -8,10 +8,9 @@ const LinkAuditor = require('./Helpers/LinkAuditor')
 
 const baseUrl = args._[0]
 let datasetId = args._[1]
-const ca = args.ca ?? undefined
 const hashes = []
 let dataset = null
-const linkAuditor = new LinkAuditor(ca)
+const linkAuditor = new LinkAuditor()
 
 let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
