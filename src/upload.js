@@ -33,7 +33,7 @@ const Process = require('./Helpers/Process');
       document.pa11y = document.pa11y.filter(error => !error.mobile).slice(0, 10)
     }
     if (document.links && Array.isArray(document.links)) {
-      document.links = document.links.filter(link => link.status_code >= 404).slice(0, 50)
+      document.links = document.links.filter(link => link.status_code >= 404 && link.status_code < 600).slice(0, 50)
     }
     const url = new URL(document.url)
     const sha1Sum = crypto.createHash('sha1')
