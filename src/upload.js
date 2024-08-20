@@ -38,7 +38,7 @@ const Process = require('./Helpers/Process');
       })
     }
     if (document.links && Array.isArray(document.links)) {
-      document.links = document.links.filter(link => link.status_code >= 404)
+      document.links = document.links.filter(link => link.status_code >= 404).slice(0, 200)
     }
     const url = new URL(document.url)
     const sha1Sum = crypto.createHash('sha1')
