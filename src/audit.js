@@ -23,6 +23,7 @@ if (undefined === baseUrl) {
 if (undefined === datasetId) {
   datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
+const origin = (new URL(baseUrl)).origin
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 progressBar.start(1, 0)
@@ -149,6 +150,9 @@ const crawler = new PuppeteerCrawler({
     await enqueueLinks({
       transformRequestFunction (req) {
         const url = new URL(req.url)
+        if (url.origin !== origin) {
+          return false
+        }
         const shasum = crypto.createHash('sha1')
         shasum.update(`AuditHashSeed$${url.origin}${url.pathname}`)
         const hash = shasum.digest('hex')
