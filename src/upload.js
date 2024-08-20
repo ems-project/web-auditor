@@ -29,13 +29,16 @@ const Process = require('./Helpers/Process');
   for (const file of files) {
     const rawData = fs.readFileSync(path.join(directoryPath, file))
     const document = JSON.parse(rawData)
-    if (Array.isArray(document.pa11y && document.pa11y)) {
+    if (document.pa11y && Array.isArray(document.pa11y)) {
       document.pa11y = document.pa11y.slice(0, 100)
-      document.pa11y.slice(20).forEach((element) => {
+      document.pa11y.slice(50).forEach((element) => {
         delete element.context
         delete element.message
         delete element.selector
       })
+    }
+    if (document.links && Array.isArray(document.links)) {
+      document.links = document.links.filter(link => link.status_code > 200)
     }
     const url = new URL(document.url)
     const sha1Sum = crypto.createHash('sha1')
