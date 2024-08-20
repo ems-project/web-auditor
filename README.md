@@ -105,3 +105,9 @@ By default, Crawlee is set to use only 25% of the available memory. You can upda
 ```shell
 CRAWLEE_AVAILABLE_MEMORY_RATIO=0.8 node src/audit.js https://elasticms.fgov.be
 ```
+
+### Ignore invalid self-signed ssl certificate in external links
+
+```shell
+NODE_TLS_REJECT_UNAUTHORIZED=0 node src/audit.js https://elasticms.fgov.be
+```
