@@ -55,8 +55,8 @@ const Process = require('./Helpers/Process');
         break
       } catch (e) {
         const pa11yCounter = (document.pa11y ?? []).length
-        const linksCounter = (document.pa11y ?? []).length
-        console.warn(`Impossible to update document ${hash} from file ${file}, retry after ${counter} sec (${pa11yCounter} pa11y & ${linksCounter})`)
+        const linksCounter = (document.links ?? []).length
+        console.warn(`Impossible to update document ${hash} from file ${file}, retry after ${counter} sec (${pa11yCounter} pa11y & ${linksCounter} links)`)
         await Process.sleep(1000 * counter++)
       }
     }
