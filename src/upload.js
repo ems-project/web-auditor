@@ -13,6 +13,8 @@ if (undefined === datasetId) {
   datasetId = datasetId.replaceAll('/', '_').replaceAll(':', '')
 }
 const ignoreSsl = args['ignore-ssl']
+const pa11yLimit = args['pa11y-limit'] ?? 100
+const statusCodeLimit = args['status-code-limit']
 
 const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', datasetId)
 if (ignoreSsl) {
@@ -34,18 +36,13 @@ const Process = require('./Helpers/Process');
     const rawData = fs.readFileSync(path.join(directoryPath, file))
     const document = JSON.parse(rawData)
     if (document.pa11y && Array.isArray(document.pa11y)) {
-      document.pa11y = document.pa11y.filter(error => !error.mobile).map((p, index) => {
+      document.pa11y = document.pa11y.filter(error => !error.mobile).slice(0, pa11yLimit).map((p) => {
         delete p.mobile
-        if (index > 10) {
-          delete p.message
-          delete p.context
-          delete p.selector
-        }
         return p
       })
     }
-    if (document.links && Array.isArray(document.links)) {
-      document.links = document.links.filter(link => link.status_code >= 404 && link.status_code < 600)
+    if (statusCodeLimit && document.links && Array.isArray(document.links)) {
+      document.links = document.links.filter(link => link.status_code >= statusCodeLimit && link.status_code < 600)
     }
     const url = new URL(document.url)
     const sha1Sum = crypto.createHash('sha1')

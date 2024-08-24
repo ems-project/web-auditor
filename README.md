@@ -88,6 +88,8 @@ In order to pass them to the `audit.sh` sccript all options can be provided to a
  * `--status-code=200`: Display all links with a return code above the one provided (only for the `create.js` script)
  * `--max-pages=5000`: Limit the summary overview to the first x audited pages (performance issue if the website contains too much A11Y issues and/or too much broken links) (only for the `create.js` script). Try `--max-pages=all` to load all pages.
  * `--wait-until=load`: If defined, the page audit will be initiated only after the provided event is triggered. Check this [blog page](https://cloudlayer.io/blog/puppeteer-waituntil-options/). (only for the `audit.js` script)
+ * `--pa11y-limit=100`: Limit the upload of P11Y errors to the first x one. Default value `100`. (only for the `upload.js` script)
+ * `--status-code-limit=404`: If defined, limit the upload of links to one with status code bigger or equal to x. (only for the `upload.js` script)
 
 And then you can run :
 ````shell
