@@ -12,8 +12,12 @@ if (undefined === datasetId) {
 } else {
   datasetId = datasetId.replaceAll('/', '_').replaceAll(':', '')
 }
+const ignoreSsl = args['ignore-ssl']
 
 const directoryPath = path.join(__dirname, '..', 'storage', 'datasets', datasetId)
+if (ignoreSsl) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+}
 const Process = require('./Helpers/Process');
 
 (async () => {

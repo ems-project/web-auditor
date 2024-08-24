@@ -10,6 +10,10 @@ if (undefined === datasetId) {
 } else {
   datasetId = datasetId.replaceAll('/', '_').replaceAll(':', '')
 }
+const ignoreSsl = args['ignore-ssl']
+if (ignoreSsl) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+}
 
 (async () => {
   const sourcePath = path.join(__dirname, '..', 'storage', 'datasets', datasetId, '000000001.json')
