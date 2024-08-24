@@ -82,12 +82,17 @@ A shell script, at the root, is available to audit, upload and clean a website w
 
 ## Script's options
 
-All options can be provided to all WebAuditor scripts, but they don't always have an effect on all scripts: 
+In order to pass them to the `audit.sh` sccript all options can be provided to all WebAuditor scripts, but they don't always have an effect on all scripts: 
 
  * `--ignore-ssl=true`: used to ignore SSL errors
  * `--status-code=200`: Display all links with a return code above the one provided (only for the create.js script)
  * `--max-pages=5000`: Limit the summary overview to the first x audited pages (performance issue if the website contains too much A11Y issues and/or too much broken links) (only for the create.js script). Try `--max-pages=all` to load all pages.
  * `--wait-until=load`: If defined, the page audit will be initiated only after the provided event is triggered. Check this [blog page](https://cloudlayer.io/blog/puppeteer-waituntil-options/).
+
+And then you can run :
+````shell
+./audit.sh --ignore-ssl=true  https://elasticms.fgov.be/
+````
 
 ## How to
 
