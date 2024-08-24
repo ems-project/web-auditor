@@ -21,6 +21,7 @@ module.exports = class CoreApi {
     this.options = {
       hostname: url.hostname,
       path: url.pathname,
+      port: url.port ?? '443',
       headers: {
         'X-Auth-Token': emsAuthKey,
         Accept: 'application/json'
