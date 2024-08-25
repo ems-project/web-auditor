@@ -1,6 +1,7 @@
 version: "3"
 services:
   web-auditor:
+    #image: elasticms/web-auditor:latest
     env_file: '.env'
     ports:
       - "8686:8686"
@@ -8,4 +9,4 @@ services:
       - ./docker:/app/storage
     build:
       context: ./
-      dockerfile: Dockerfilex
+      dockerfile: Dockerfile
