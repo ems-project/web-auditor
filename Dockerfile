@@ -14,7 +14,7 @@ RUN mkdir -p /app/node_modules && \
     chmod u+x /usr/local/bin/docker-entrypoint.sh && \
     apk update && \
     apk upgrade && \
-    apk add bash udev ttf-freefont chromium \
+    apk add bash udev ttf-freefont chromium
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV CRAWLEE_AVAILABLE_MEMORY_RATIO=0.8
