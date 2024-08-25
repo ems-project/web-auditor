@@ -1,5 +1,9 @@
 FROM node:22-alpine
 
+LABEL org.opencontainers.image.source=https://github.com/ems-project/web-auditor
+LABEL org.opencontainers.image.description="ElasticMS's Web Auditor"
+LABEL org.opencontainers.image.licenses=MIT
+
 COPY src /app/src
 COPY package*.json /app/
 COPY docker-entrypoint.sh /usr/local/bin/
