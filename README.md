@@ -11,6 +11,8 @@ In those particular circumstances, the audit script might not work at first run.
 
 ## Prerequisite
 
+You may want to use a docker, check the [Docker chapter](#docker)
+
 Both Pupeteer and Chromium must install and working. Here an example for Ubuntu:  
 
 ```shell
@@ -95,6 +97,31 @@ And then you can run :
 ````shell
 ./audit.sh --ignore-ssl=true  https://elasticms.fgov.be/
 ````
+
+## Docker
+
+### Build the image
+
+```shell
+docker compose build
+```
+
+### Run the web-auditor scripts
+
+Script by script:
+
+```shell
+docker compose run web-auditor audit --disable-ssl=true https://elasticms.fgov.be/
+docker compose run --service-ports web-auditor create https://elasticms.fgov.be/
+docker compose run web-auditor upload --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
+docker compose run web-auditor clean-out https://elasticms.fgov.be/
+```
+
+Or all in one (without the `create` script):
+
+```shell
+docker compose run web-auditor all --disable-ssl=true --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
+```
 
 ## How to
 
