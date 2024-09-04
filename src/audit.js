@@ -10,6 +10,7 @@ const baseUrl = args._[0]
 let datasetId = args._[1]
 const ignoreSsl = args['ignore-ssl']
 const waitUntil = args['wait-until']
+const content = args.content
 const hashes = []
 let dataset = null
 const linkAuditor = new LinkAuditor()
@@ -73,6 +74,11 @@ const crawler = new PuppeteerCrawler({
       if (isHtmlMimetype(data.mimetype)) {
         data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
+        if (content) {
+          const body = await page.$('body')
+          data.content = await page.evaluate(el => el.textContent, body)
+          data.content = data.content.replace(/\s{2,}/g, ' ').trim()
+        }
         const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
           const url = a.href ?? a.src
           const text = (a.innerText ?? '').trim()
