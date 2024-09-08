@@ -10,6 +10,14 @@ module.exports = class Extractor {
   }
 
   async extractContent (path) {
+    const { stdout, stderr } = await exec(`java -jar ${this.#tikaPath} --text ${path}`)
+    if (stderr) {
+      console.error(stderr)
+    }
+    return stdout
+  }
+
+  async extractHtmlContent (path) {
     const { stdout, stderr } = await exec(`java -jar ${this.#tikaPath} --html ${path}`)
     if (stderr) {
       console.error(stderr)
