@@ -3,6 +3,7 @@ const pa11y = require('pa11y')
 const { PuppeteerCrawler, Dataset } = require('crawlee')
 const cliProgress = require('cli-progress')
 const crypto = require('crypto')
+const Header = require('./Helpers/Header')
 const String = require('./Helpers/String')
 const LinkAuditor = require('./Helpers/LinkAuditor')
 
@@ -32,13 +33,6 @@ if (ignoreSsl) {
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 progressBar.start(1, 0)
-
-function isHtmlMimetype (mimetype) {
-  if (!mimetype) {
-    return false
-  }
-  return mimetype.startsWith('text/html') || mimetype.startsWith('application/xhtml')
-}
 
 const crawler = new PuppeteerCrawler({
   launchContext: {
@@ -71,7 +65,7 @@ const crawler = new PuppeteerCrawler({
         data[field] = urlAudit[field]
       }
       data.meta_title = await page.title()
-      if (isHtmlMimetype(data.mimetype)) {
+      if (Header.isHtmlMimetype(data.mimetype)) {
         data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
         if (content) {
@@ -158,7 +152,7 @@ const crawler = new PuppeteerCrawler({
         }
         hashes.push(hash)
         const auditUrl = linkAuditor.getFromCache(req.url)
-        if (!auditUrl || (!auditUrl.mimetype && auditUrl.status_code < 400) || isHtmlMimetype(auditUrl.mimetype)) {
+        if (!auditUrl || (!auditUrl.mimetype && auditUrl.status_code < 400) || Header.isHtmlMimetype(auditUrl.mimetype)) {
           return req
         }
 
