@@ -88,6 +88,7 @@ In order to pass them to the `audit.sh` sccript all options can be provided to a
 
  * `--ignore-ssl=true`: used to ignore SSL errors (only for the `audit.js`, `clean-out.js` and `upload.js` scripts)
  * `--content=true`: also extract URL's text content (from HTML inner text)
+ * `--extract=true`: Use tika to extract content and metas from assets 
  * `--status-code=200`: Display all links with a return code above the one provided (only for the `create.js` script)
  * `--max-pages=5000`: Limit the summary overview to the first x audited pages (performance issue if the website contains too much A11Y issues and/or too much broken links) (only for the `create.js` script). Try `--max-pages=all` to load all pages.
  * `--wait-until=load`: If defined, the page audit will be initiated only after the provided event is triggered. Check this [blog page](https://cloudlayer.io/blog/puppeteer-waituntil-options/). (only for the `audit.js` script)
