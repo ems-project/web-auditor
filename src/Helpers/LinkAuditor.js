@@ -51,45 +51,49 @@ module.exports = class LinkAuditor {
 
   #request (href) {
     const self = this
-    let tmpObject = tmp.fileSync()
+    const tmpObject = tmp.fileSync()
+    let resolved = false
     return new Promise(resolve => {
       try {
-        request({
+        const req = request({
           url: href,
           maxAttempts: 5,
           retryDelay: 5000,
           retryStrategy: request.RetryStrategies.HTTPOrNetworkError
         }, function (error, response) {
           if (response) {
-            const data = self.#response(href, response, tmpObject)
-            resolve(data)
+            const data = self.#response(href, response)
             if (Header.isHtmlMimetype(data.mimetype) || ((new URL(href)).origin !== self.#origin)) {
-              tmpObject.removeCallback()
-              tmpObject = null
-              this.abort()
+              resolved = true
+              resolve(data)
+              req.destroy()
             }
           } else {
             resolve(self.#error(href, error))
           }
         }).on('data', (data) => {
-          if (data.length <= 0 || !tmpObject) {
+          if (data.length <= 0) {
             return
           }
           fs.write(tmpObject.fd, data, (err) => {
-            if (!err) {
-              return
+            if (err) {
+              console.error(err)
             }
-            console.error(err)
           })
-        }).on('end', (data) => {
-          if (!tmpObject) {
-            return
-          }
+        }).on('end', () => {
           fs.close(tmpObject.fd, (err) => {
-            if (!err) {
+            if (resolved) {
+              tmpObject.removeCallback()
               return
             }
-            console.error(err)
+            if (err) {
+              resolve(self.#error(href, err))
+            }
+            const data = this.#cacheHrefs[href]
+            if (tmpObject) {
+              data.tmpObject = tmpObject
+            }
+            resolve(data)
           })
         })
       } catch (error) {
@@ -108,13 +112,12 @@ module.exports = class LinkAuditor {
     return data
   }
 
-  #response (href, response, tmpObject) {
+  #response (href, response) {
     const data = {
       url: href,
       status_code: response.statusCode,
       message: response.statusMessage,
-      mimetype: response.headers['content-type'],
-      tmpObject
+      mimetype: response.headers['content-type']
     }
     this.#cacheHrefs[href] = data
     return data

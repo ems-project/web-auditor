@@ -92,7 +92,8 @@ const crawler = new PuppeteerCrawler({
             if (auditUrls[auditIndex].url !== hrefs[hrefIndex].url) {
               continue
             }
-            hrefs[hrefIndex] = Object.assign(auditUrls[auditIndex], hrefs[hrefIndex])
+            hrefs[hrefIndex] = { ...Object.assign(auditUrls[auditIndex], hrefs[hrefIndex]) }
+            delete hrefs[hrefIndex].tmpObject
           }
         }
         data.links = hrefs
@@ -177,6 +178,10 @@ const crawler = new PuppeteerCrawler({
         const tmpObject = auditUrl.tmpObject
         extractor.extractContent(tmpObject.name).then((content) => {
           data.content = content.replace(/\s{2,}/g, ' ').trim()
+          dataset.pushData(data)
+          tmpObject.removeCallback()
+        }).catch((err) => {
+          data.error = err.message ?? 'This url encountered an error during content extract'
           dataset.pushData(data)
           tmpObject.removeCallback()
         })
