@@ -1,9 +1,16 @@
 'use strict'
 const request = require('requestretry')
+const tmp = require('tmp')
+const fs = require('fs')
+const Header = require('./Header')
+
 module.exports = class LinkAuditor {
   #cacheHrefs
-  constructor () {
+  #origin
+  constructor (origin) {
+    this.#origin = origin
     this.#cacheHrefs = []
+    tmp.setGracefulCleanup()
   }
 
   async auditUrls (hrefs) {
@@ -44,6 +51,7 @@ module.exports = class LinkAuditor {
 
   #request (href) {
     const self = this
+    let tmpObject = tmp.fileSync()
     return new Promise(resolve => {
       try {
         request({
@@ -53,10 +61,36 @@ module.exports = class LinkAuditor {
           retryStrategy: request.RetryStrategies.HTTPOrNetworkError
         }, function (error, response) {
           if (response) {
-            resolve(self.#response(href, response))
+            const data = self.#response(href, response, tmpObject)
+            resolve(data)
+            if (Header.isHtmlMimetype(data.mimetype) || ((new URL(href)).origin !== self.#origin)) {
+              tmpObject.removeCallback()
+              tmpObject = null
+              this.abort()
+            }
           } else {
             resolve(self.#error(href, error))
           }
+        }).on('data', (data) => {
+          if (data.length <= 0 || !tmpObject) {
+            return
+          }
+          fs.write(tmpObject.fd, data, (err) => {
+            if (!err) {
+              return
+            }
+            console.error(err)
+          })
+        }).on('end', (data) => {
+          if (!tmpObject) {
+            return
+          }
+          fs.close(tmpObject.fd, (err) => {
+            if (!err) {
+              return
+            }
+            console.error(err)
+          })
         })
       } catch (error) {
         resolve(self.#error(href, error))
@@ -74,12 +108,13 @@ module.exports = class LinkAuditor {
     return data
   }
 
-  #response (href, response) {
+  #response (href, response, tmpObject) {
     const data = {
       url: href,
       status_code: response.statusCode,
       message: response.statusMessage,
-      mimetype: response.headers['content-type']
+      mimetype: response.headers['content-type'],
+      tmpObject
     }
     this.#cacheHrefs[href] = data
     return data

@@ -5,19 +5,21 @@ const cliProgress = require('cli-progress')
 const crypto = require('crypto')
 const Header = require('./Helpers/Header')
 const String = require('./Helpers/String')
+const Extractor = require('./Helpers/Extractor')
 const LinkAuditor = require('./Helpers/LinkAuditor')
 
 const baseUrl = args._[0]
 let datasetId = args._[1]
 const ignoreSsl = args['ignore-ssl']
 const waitUntil = args['wait-until']
+const extract = args.extract
 const content = args.content
 const hashes = []
 let dataset = null
-const linkAuditor = new LinkAuditor()
 
 let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
+const extractor = new Extractor()
 
 if (undefined === baseUrl) {
   console.log('The argument website to test is mandatory')
@@ -27,6 +29,7 @@ if (undefined === datasetId) {
   datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 const origin = (new URL(baseUrl)).origin
+const linkAuditor = new LinkAuditor(origin)
 if (ignoreSsl) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 }
@@ -166,7 +169,17 @@ const crawler = new PuppeteerCrawler({
           status_code: auditUrl.status_code ?? 500,
           mimetype: auditUrl.mimetype ?? null
         }
-        dataset.pushData(data)
+        if (!extract || !content || !auditUrl.tmpObject) {
+          dataset.pushData(data)
+          return false
+        }
+
+        const tmpObject = auditUrl.tmpObject
+        extractor.extractContent(tmpObject.name).then((content) => {
+          data.content = content.replace(/\s{2,}/g, ' ').trim()
+          dataset.pushData(data)
+          tmpObject.removeCallback()
+        })
 
         return false
       }
