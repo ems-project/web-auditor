@@ -52,7 +52,7 @@ module.exports = class LinkAuditor {
   #request (href) {
     const self = this
     const tmpObject = tmp.fileSync()
-    let resolved = false
+    const writeStream = fs.createWriteStream(tmpObject.name)
     return new Promise(resolve => {
       try {
         const req = request({
@@ -64,37 +64,22 @@ module.exports = class LinkAuditor {
           if (response) {
             const data = self.#response(href, response)
             if (Header.isHtmlMimetype(data.mimetype) || ((new URL(href)).origin !== self.#origin)) {
-              resolved = true
-              resolve(data)
               req.destroy()
+              resolve(data)
+            } else {
+              writeStream.on('finish', () => {
+                data.tmpObject = tmpObject
+                resolve(data)
+              }).on('error', (err) => {
+                data.error = err.message ?? 'Error on saving assets'
+                resolve(data)
+              })
             }
           } else {
             resolve(self.#error(href, error))
           }
-        }).on('data', (data) => {
-          if (data.length <= 0) {
-            return
-          }
-          fs.write(tmpObject.fd, data, (err) => {
-            if (err) {
-              console.error(err)
-            }
-          })
-        }).on('end', () => {
-          fs.close(tmpObject.fd, (err) => {
-            if (resolved) {
-              tmpObject.removeCallback()
-              return
-            }
-            if (err) {
-              resolve(self.#error(href, err))
-            }
-            const data = this.#cacheHrefs[href]
-            if (tmpObject) {
-              data.tmpObject = tmpObject
-            }
-            resolve(data)
-          })
+        }).pipe(writeStream).on('error', () => {
+          // Request might have been intentionally destroyed
         })
       } catch (error) {
         resolve(self.#error(href, error))
