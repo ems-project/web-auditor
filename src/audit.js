@@ -5,7 +5,6 @@ const cliProgress = require('cli-progress')
 const crypto = require('crypto')
 const Header = require('./Helpers/Header')
 const String = require('./Helpers/String')
-const Extractor = require('./Helpers/Extractor')
 const LinkAuditor = require('./Helpers/LinkAuditor')
 
 const baseUrl = args._[0]
@@ -19,7 +18,6 @@ let dataset = null
 
 let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
-const extractor = new Extractor()
 
 if (undefined === baseUrl) {
   console.log('The argument website to test is mandatory')
@@ -29,7 +27,7 @@ if (undefined === datasetId) {
   datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 const origin = (new URL(baseUrl)).origin
-const linkAuditor = new LinkAuditor(origin)
+const linkAuditor = new LinkAuditor(origin, extract, content)
 if (ignoreSsl) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 }
@@ -93,7 +91,9 @@ const crawler = new PuppeteerCrawler({
               continue
             }
             hrefs[hrefIndex] = { ...Object.assign(auditUrls[auditIndex], hrefs[hrefIndex]) }
-            delete hrefs[hrefIndex].tmpObject
+            delete hrefs[hrefIndex].content
+            delete hrefs[hrefIndex].title
+            delete hrefs[hrefIndex].locale
           }
         }
         data.links = hrefs
@@ -170,21 +170,19 @@ const crawler = new PuppeteerCrawler({
           status_code: auditUrl.status_code ?? 500,
           mimetype: auditUrl.mimetype ?? null
         }
-        if (!extract || !content || !auditUrl.tmpObject) {
-          dataset.pushData(data)
-          return false
+        if (auditUrl.content) {
+          data.content = auditUrl.content
+          delete auditUrl.content
         }
-
-        const tmpObject = auditUrl.tmpObject
-        extractor.extractContent(tmpObject.name).then((content) => {
-          data.content = content.replace(/\s{2,}/g, ' ').trim()
-          dataset.pushData(data)
-          tmpObject.removeCallback()
-        }).catch((err) => {
-          data.error = err.message ?? 'This url encountered an error during content extract'
-          dataset.pushData(data)
-          tmpObject.removeCallback()
-        })
+        if (auditUrl.title) {
+          data.title = auditUrl.title
+          delete auditUrl.title
+        }
+        if (auditUrl.locale) {
+          data.locale = auditUrl.locale
+          delete auditUrl.locale
+        }
+        dataset.pushData(data)
 
         return false
       }

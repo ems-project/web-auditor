@@ -3,13 +3,20 @@ const request = require('requestretry')
 const tmp = require('tmp')
 const fs = require('fs')
 const Header = require('./Header')
+const Extractor = require('./Extractor')
 
 module.exports = class LinkAuditor {
   #cacheHrefs
   #origin
-  constructor (origin) {
+  #extract
+  #content
+  #extractor
+  constructor (origin, extract, content) {
     this.#origin = origin
+    this.#extract = extract
+    this.#content = content
     this.#cacheHrefs = []
+    this.#extractor = new Extractor()
     tmp.setGracefulCleanup()
   }
 
@@ -68,8 +75,7 @@ module.exports = class LinkAuditor {
               resolve(data)
             } else {
               writeStream.on('finish', () => {
-                data.tmpObject = tmpObject
-                resolve(data)
+                self.extractLanguage(data, tmpObject, resolve)
               }).on('error', (err) => {
                 data.error = err.message ?? 'Error on saving assets'
                 resolve(data)
@@ -106,5 +112,42 @@ module.exports = class LinkAuditor {
     }
     this.#cacheHrefs[href] = data
     return data
+  }
+
+  extractLanguage (data, tmpObject, resolve) {
+    if (!this.#extract) {
+      resolve(data)
+    }
+    this.#extractor.extractLanguage(tmpObject.name).then((locale) => {
+      data.locale = locale.trim()
+    }).catch((err) => {
+      data.error = err.message ?? 'This url encountered an error during language extract'
+    }).finally(() => {
+      this.extractMeta(data, tmpObject, resolve)
+    })
+  }
+
+  extractMeta (data, tmpObject, resolve) {
+    this.#extractor.extractMeta(tmpObject.name).then((meta) => {
+      data.title = meta['dc:title'] ?? null
+    }).catch((err) => {
+      data.error = err.message ?? 'This url encountered an error during meta extract'
+    }).finally(() => {
+      this.extractContent(data, tmpObject, resolve)
+    })
+  }
+
+  extractContent (data, tmpObject, resolve) {
+    if (!this.#content) {
+      resolve(data)
+    }
+    this.#extractor.extractContent(tmpObject.name).then((content) => {
+      data.content = content.replace(/\s{2,}/g, ' ').trim()
+    }).catch((err) => {
+      data.error = err.message ?? 'This url encountered an error during content extract'
+    }).finally(() => {
+      tmpObject.removeCallback()
+      resolve(data)
+    })
   }
 }
