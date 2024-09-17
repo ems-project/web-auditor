@@ -14,7 +14,6 @@ const waitUntil = args['wait-until']
 const content = args.content
 const hashes = []
 let dataset = null
-const linkAuditor = new LinkAuditor()
 
 let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
@@ -27,6 +26,7 @@ if (undefined === datasetId) {
   datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 const origin = (new URL(baseUrl)).origin
+const linkAuditor = new LinkAuditor(origin, content)
 if (ignoreSsl) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 }
@@ -62,6 +62,9 @@ const crawler = new PuppeteerCrawler({
     try {
       const urlAudit = await linkAuditor.auditUrl(request.loadedUrl)
       for (const field in urlAudit) {
+        if (['text', 'type'].includes(field)) {
+          continue
+        }
         data[field] = urlAudit[field]
       }
       data.meta_title = await page.title()
@@ -153,6 +156,9 @@ const crawler = new PuppeteerCrawler({
         hashes.push(hash)
         const auditUrl = linkAuditor.getFromCache(req.url)
         if (!auditUrl || (!auditUrl.mimetype && auditUrl.status_code < 400) || Header.isHtmlMimetype(auditUrl.mimetype)) {
+          if (auditUrl.content) {
+            delete auditUrl.content
+          }
           return req
         }
 
@@ -165,6 +171,10 @@ const crawler = new PuppeteerCrawler({
           is_web: true,
           status_code: auditUrl.status_code ?? 500,
           mimetype: auditUrl.mimetype ?? null
+        }
+        if (auditUrl.content) {
+          data.content = auditUrl.content
+          delete auditUrl.content
         }
         dataset.pushData(data)
 
