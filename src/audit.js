@@ -42,7 +42,7 @@ const crawler = new PuppeteerCrawler({
   },
   preNavigationHooks: [
     async (crawlingContext, gotoOptions) => {
-      gotoOptions.timeout = 20_000
+      gotoOptions.timeout = 30_000
       gotoOptions.navigationTimeoutSecs = 10
       if (waitUntil) {
         gotoOptions.waitUntil = waitUntil
