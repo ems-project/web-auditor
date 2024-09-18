@@ -66,18 +66,17 @@ module.exports = class LinkAuditor {
                 !self.#content ||
                 Header.isHtmlMimetype(data.mimetype) ||
                 ((new URL(href)).origin !== self.#origin) ||
-                data.mimetype.startsWith('image/') ||
-                ['application/octet-stream', 'text/javascript', 'text/css'].includes(data.mimetype)) {
+                ['application/octet-stream', 'text/javascript', 'text/css', 'application/x-javascript'].includes(data.mimetype)) {
               req.destroy()
               resolve(data)
             } else {
               textract.fromBufferWithMime(data.mimetype, response.body, (error, text) => {
                 if (error) {
-                  resolve(self.#error(href, error))
+                  data.warning = `Textract fails: ${error.message}`
                 } else {
                   data.content = text
-                  resolve(data)
                 }
+                resolve(data)
               })
             }
           } else {
