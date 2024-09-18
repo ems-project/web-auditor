@@ -5,14 +5,15 @@ const cliProgress = require('cli-progress')
 const crypto = require('crypto')
 const String = require('./Helpers/String')
 const LinkAuditor = require('./Helpers/LinkAuditor')
+const Header = require('./Helpers/Header')
 
 const baseUrl = args._[0]
 let datasetId = args._[1]
 const ignoreSsl = args['ignore-ssl']
 const waitUntil = args['wait-until']
+const content = args.content
 const hashes = []
 let dataset = null
-const linkAuditor = new LinkAuditor()
 
 let pagesWithIssuesCount = 0
 let totalIssuesCount = 0
@@ -25,19 +26,13 @@ if (undefined === datasetId) {
   datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 const origin = (new URL(baseUrl)).origin
+const linkAuditor = new LinkAuditor(origin, content)
 if (ignoreSsl) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 }
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 progressBar.start(1, 0)
-
-function isHtmlMimetype (mimetype) {
-  if (!mimetype) {
-    return false
-  }
-  return mimetype.startsWith('text/html') || mimetype.startsWith('application/xhtml')
-}
 
 const crawler = new PuppeteerCrawler({
   launchContext: {
@@ -47,7 +42,7 @@ const crawler = new PuppeteerCrawler({
   },
   preNavigationHooks: [
     async (crawlingContext, gotoOptions) => {
-      gotoOptions.timeout = 20_000
+      gotoOptions.timeout = 30_000
       gotoOptions.navigationTimeoutSecs = 10
       if (waitUntil) {
         gotoOptions.waitUntil = waitUntil
@@ -67,12 +62,20 @@ const crawler = new PuppeteerCrawler({
     try {
       const urlAudit = await linkAuditor.auditUrl(request.loadedUrl)
       for (const field in urlAudit) {
+        if (['text', 'type'].includes(field)) {
+          continue
+        }
         data[field] = urlAudit[field]
       }
       data.meta_title = await page.title()
-      if (isHtmlMimetype(data.mimetype)) {
+      if (Header.isHtmlMimetype(data.mimetype)) {
         data.title = await page.$('h1') ? await page.$eval('h1', el => el.textContent) : null
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
+        if (content) {
+          const body = await page.$('body')
+          data.content = await page.evaluate(el => el.textContent, body)
+          data.content = data.content.replace(/\s{2,}/g, ' ').trim()
+        }
         const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
           const url = a.href ?? a.src
           const text = (a.innerText ?? '').trim()
@@ -89,7 +92,12 @@ const crawler = new PuppeteerCrawler({
             if (auditUrls[auditIndex].url !== hrefs[hrefIndex].url) {
               continue
             }
-            hrefs[hrefIndex] = Object.assign(auditUrls[auditIndex], hrefs[hrefIndex])
+            for (const field in auditUrls[auditIndex]) {
+              if (hrefs[hrefIndex][field] || !['url', 'status_code', 'message', 'mimetype', 'type', 'text'].includes(field)) {
+                continue
+              }
+              hrefs[hrefIndex][field] = auditUrls[auditIndex][field]
+            }
           }
         }
         data.links = hrefs
@@ -152,7 +160,10 @@ const crawler = new PuppeteerCrawler({
         }
         hashes.push(hash)
         const auditUrl = linkAuditor.getFromCache(req.url)
-        if (!auditUrl || (!auditUrl.mimetype && auditUrl.status_code < 400) || isHtmlMimetype(auditUrl.mimetype)) {
+        if (!auditUrl || (!auditUrl.mimetype && auditUrl.status_code < 400) || Header.isHtmlMimetype(auditUrl.mimetype)) {
+          if (auditUrl.content) {
+            delete auditUrl.content
+          }
           return req
         }
 
@@ -165,6 +176,14 @@ const crawler = new PuppeteerCrawler({
           is_web: true,
           status_code: auditUrl.status_code ?? 500,
           mimetype: auditUrl.mimetype ?? null
+        }
+        if (auditUrl.content) {
+          data.content = auditUrl.content
+          delete auditUrl.content
+        }
+        if (auditUrl.warning) {
+          data.warning = auditUrl.warning
+          delete auditUrl.warning
         }
         dataset.pushData(data)
 

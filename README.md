@@ -87,6 +87,7 @@ A shell script, at the root, is available to audit, upload and clean a website w
 In order to pass them to the `audit.sh` sccript all options can be provided to all WebAuditor scripts, but they don't always have an effect on all scripts: 
 
  * `--ignore-ssl=true`: used to ignore SSL errors (only for the `audit.js`, `clean-out.js` and `upload.js` scripts)
+ * `--content=true`: also extract text content if supported in a `content` field (for HTML and using [textract](https://www.npmjs.com/package/textract))
  * `--status-code=200`: Display all links with a return code above the one provided (only for the `create.js` script)
  * `--max-pages=5000`: Limit the summary overview to the first x audited pages (performance issue if the website contains too much A11Y issues and/or too much broken links) (only for the `create.js` script). Try `--max-pages=all` to load all pages.
  * `--wait-until=load`: If defined, the page audit will be initiated only after the provided event is triggered. Check this [blog page](https://cloudlayer.io/blog/puppeteer-waituntil-options/). (only for the `audit.js` script)
@@ -111,7 +112,7 @@ docker compose build
 Script by script:
 
 ```shell
-docker compose run web-auditor audit --disable-ssl=true https://elasticms.fgov.be/
+docker compose run web-auditor audit --ignore-ssl=true --content=true https://elasticms.fgov.be/
 docker compose run --service-ports web-auditor create https://elasticms.fgov.be/
 docker compose run web-auditor upload --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
 docker compose run web-auditor clean-out https://elasticms.fgov.be/
@@ -120,7 +121,7 @@ docker compose run web-auditor clean-out https://elasticms.fgov.be/
 Or all in one (without the `create` script):
 
 ```shell
-docker compose run web-auditor all --disable-ssl=true --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
+docker compose run web-auditor all --ignore-ssl=true --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
 ```
 
 ## How to
