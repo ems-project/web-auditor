@@ -92,7 +92,12 @@ const crawler = new PuppeteerCrawler({
             if (auditUrls[auditIndex].url !== hrefs[hrefIndex].url) {
               continue
             }
-            hrefs[hrefIndex] = Object.assign(auditUrls[auditIndex], hrefs[hrefIndex])
+            for (const field in auditUrls[auditIndex]) {
+              if (hrefs[hrefIndex][field] || !['url', 'status_code', 'message', 'mimetype', 'type', 'text'].includes(field)) {
+                continue
+              }
+              hrefs[hrefIndex][field] = auditUrls[auditIndex][field]
+            }
           }
         }
         data.links = hrefs
