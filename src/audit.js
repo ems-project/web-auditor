@@ -181,6 +181,10 @@ const crawler = new PuppeteerCrawler({
           data.content = auditUrl.content
           delete auditUrl.content
         }
+        if (auditUrl.warning) {
+          data.warning = auditUrl.warning
+          delete auditUrl.warning
+        }
         dataset.pushData(data)
 
         return false
