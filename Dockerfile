@@ -4,25 +4,21 @@ LABEL org.opencontainers.image.source=https://github.com/ems-project/web-auditor
 LABEL org.opencontainers.image.description="ElasticMS's Web Auditor"
 LABEL org.opencontainers.image.licenses=MIT
 
-COPY src /app/src
-COPY package*.json /app/
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN mkdir -p /app/node_modules && \
-    mkdir -p /app/storage && \
-    chown -R node:node /app  && \
-    chown node:node /usr/local/bin/docker-entrypoint.sh && \
-    chmod u+x /usr/local/bin/docker-entrypoint.sh && \
-    apk update && \
-    apk upgrade && \
-    apk add bash udev ttf-freefont chromium xpdf antiword unrtf poppler-utils tcl-lib tesseract-ocr
+COPY --chown=node src /app/src
+COPY --chown=node package*.json /app/
+COPY --chown=node docker-entrypoint.sh /usr/local/bin/
+
+WORKDIR /app
+
+RUN chmod u+x /usr/local/bin/docker-entrypoint.sh && \
+    apk add bash ttf-freefont chromium udev xpdf antiword unrtf poppler-utils tcl-lib tesseract-ocr
+
+USER node
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV CRAWLEE_AVAILABLE_MEMORY_RATIO=0.8
 
-WORKDIR /app
-
-USER node
-
-RUN npm install
+RUN mkdir -p ./storage && \
+    npm install
 
 ENTRYPOINT ["docker-entrypoint.sh"]
