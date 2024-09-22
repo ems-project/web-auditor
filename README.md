@@ -121,7 +121,7 @@ docker compose run --rm web-auditor clean-out https://elasticms.fgov.be/
 Or all in one (without the `create` script):
 
 ```shell
-docker compose run -rm web-auditor all --ignore-ssl=true --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
+docker compose run --rm web-auditor all --ignore-ssl=true --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
 ```
 
 ## How to
