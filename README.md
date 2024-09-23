@@ -112,16 +112,16 @@ docker compose build
 Script by script:
 
 ```shell
-docker compose run web-auditor audit --ignore-ssl=true --content=true https://elasticms.fgov.be/
-docker compose run --service-ports web-auditor create https://elasticms.fgov.be/
-docker compose run web-auditor upload --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
-docker compose run web-auditor clean-out https://elasticms.fgov.be/
+docker compose run --rm web-auditor audit --ignore-ssl=true --content=true https://elasticms.fgov.be/
+docker compose run --rm --service-ports web-auditor create https://elasticms.fgov.be/
+docker compose run --rm web-auditor upload --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
+docker compose run --rm web-auditor clean-out https://elasticms.fgov.be/
 ```
 
 Or all in one (without the `create` script):
 
 ```shell
-docker compose run web-auditor all --ignore-ssl=true --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
+docker compose run --rm web-auditor all --ignore-ssl=true --pa11y-limit=10 --status-code-limit=404 https://elasticms.fgov.be/
 ```
 
 ## How to

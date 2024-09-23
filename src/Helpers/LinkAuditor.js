@@ -30,6 +30,7 @@ module.exports = class LinkAuditor {
   }
 
   async auditUrl (href) {
+    href = href.split('#')[0]
     if (this.#cacheHrefs[href]) {
       return this.#cacheHrefs[href]
     }
