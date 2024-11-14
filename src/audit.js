@@ -11,6 +11,7 @@ const baseUrl = args._[0]
 let datasetId = args._[1]
 const ignoreSsl = args['ignore-ssl']
 const waitUntil = args['wait-until']
+const maxConcurrency = args['max-concurrency'] ?? 50
 const content = args.content
 const hashes = []
 let dataset = null
@@ -219,7 +220,7 @@ const crawler = new PuppeteerCrawler({
     return dataset.pushData(data)
   },
   headless: true,
-  maxConcurrency: 100
+  maxConcurrency
 });
 
 (async () => {

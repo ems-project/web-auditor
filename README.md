@@ -93,6 +93,7 @@ In order to pass them to the `audit.sh` sccript all options can be provided to a
  * `--wait-until=load`: If defined, the page audit will be initiated only after the provided event is triggered. Check this [blog page](https://cloudlayer.io/blog/puppeteer-waituntil-options/). (only for the `audit.js` script)
  * `--pa11y-limit=100`: Limit the upload of P11Y errors to the first x one. Default value `100`. (only for the `upload.js` script)
  * `--status-code-limit=404`: If defined, limit the upload of links to one with status code bigger or equal to x. (only for the `upload.js` script)
+ * `--max-concurrency=10`: Sets the maximum concurrency (parallelism) for the crawl. Default value `50`.
 
 And then you can run :
 ````shell
