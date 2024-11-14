@@ -19,7 +19,7 @@ module.exports = class LinkAuditor {
     setHrefs.forEach(href => {
       promises.push(this.auditUrl(href))
       ++counter
-      if ((counter % 20) === 0) {
+      if ((counter % 10) === 0) {
         Promise.all(promises)
       }
     })
