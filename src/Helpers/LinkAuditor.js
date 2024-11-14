@@ -15,8 +15,13 @@ module.exports = class LinkAuditor {
   async auditUrls (hrefs) {
     const setHrefs = new Set(hrefs)
     const promises = []
+    let counter = 0
     setHrefs.forEach(href => {
       promises.push(this.auditUrl(href))
+      ++counter
+      if ((counter % 20) === 0) {
+        Promise.all(promises)
+      }
     })
     return Promise.all(promises)
   }
