@@ -39,26 +39,28 @@ module.exports = class LinkAuditor {
     if (this.#cacheHrefs[href]) {
       return this.#cacheHrefs[href]
     }
-    const url = new URL(href)
-    if (!URL.canParse(href)) {
+    try {
+      const url = new URL(href)
+      switch (url.protocol) {
+        case 'http:':
+        case 'https:':
+          return this.#request(href)
+      }
+      const data = {
+        url: href,
+        status_code: 302,
+        message: 'Protocol not supported'
+      }
+      this.#cacheHrefs[href] = data
+
+      return data
+    } catch (err) {
       return {
         url: href,
         status_code: 400,
-        message: 'Can\'t parse the URL'
+        message: 'Invalid URL'
       }
     }
-    switch (url.protocol) {
-      case 'http:':
-      case 'https:':
-        return this.#request(href)
-    }
-    const data = {
-      url: href,
-      status_code: 302,
-      message: 'Protocol not supported'
-    }
-    this.#cacheHrefs[href] = data
-    return data
   }
 
   #request (href) {
