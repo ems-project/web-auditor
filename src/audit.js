@@ -73,6 +73,12 @@ const crawler = new PuppeteerCrawler({
         data.locale = await page.$('html') ? await page.$eval('html', el => el.getAttribute('lang')) : null
         if (content) {
           const body = await page.$('body')
+          await page.evaluate((sel) => {
+            const elements = document.querySelectorAll(sel)
+            for (let i = 0; i < elements.length; i++) {
+              elements[i].parentNode.removeChild(elements[i])
+            }
+          }, 'script')
           data.content = await page.evaluate(el => el.textContent, body)
           data.content = data.content.replace(/\s{2,}/g, ' ').trim()
         }
