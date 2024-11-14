@@ -39,6 +39,7 @@ module.exports = class LinkAuditor {
     if (this.#cacheHrefs[href]) {
       return this.#cacheHrefs[href]
     }
+    const url = new URL(href)
     if (!URL.canParse(href)) {
       return {
         url: href,
@@ -46,7 +47,6 @@ module.exports = class LinkAuditor {
         message: 'Can\'t parse the URL'
       }
     }
-    const url = new URL(href)
     switch (url.protocol) {
       case 'http:':
       case 'https:':
