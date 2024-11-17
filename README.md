@@ -84,7 +84,7 @@ A shell script, at the root, is available to audit, upload and clean a website w
 
 ## Script's options
 
-In order to pass them to the `audit.sh` sccript all options can be provided to all WebAuditor scripts, but they don't always have an effect on all scripts: 
+In order to pass them to the `audit.sh` script all options can be provided to all WebAuditor scripts, but they don't always have an effect on all scripts, but the [search script](#search) that works with it's own parameters: 
 
  * `--ignore-ssl=true`: used to ignore SSL errors (only for the `audit.js`, `clean-out.js` and `upload.js` scripts)
  * `--content=true`: also extract text content if supported in a `content` field (for HTML and using [textract](https://www.npmjs.com/package/textract))
@@ -93,11 +93,33 @@ In order to pass them to the `audit.sh` sccript all options can be provided to a
  * `--wait-until=load`: If defined, the page audit will be initiated only after the provided event is triggered. Check this [blog page](https://cloudlayer.io/blog/puppeteer-waituntil-options/). (only for the `audit.js` script)
  * `--pa11y-limit=100`: Limit the upload of P11Y errors to the first x one. Default value `100`. (only for the `upload.js` script)
  * `--status-code-limit=404`: If defined, limit the upload of links to one with status code bigger or equal to x. (only for the `upload.js` script)
+ * `--max-concurrency=10`: Sets the maximum concurrency (parallelism) for the crawl. Default value `50`.
 
 And then you can run :
 ````shell
 ./audit.sh --ignore-ssl=true  https://elasticms.fgov.be/
 ````
+
+## Search
+
+All you to search a RegEx throw all local datasets. The console output is CSV line, one line by hit.
+
+```shell
+node src/search.js "BE[0-9]{2}.[0-9]{4}.[0-9]{4}.[0-9]{4}"
+```
+
+With this script you can also limit the search within only node dataset with an extra parameter:
+
+
+```shell
+node src/search.js "BE[0-9]{2}.[0-9]{4}.[0-9]{4}.[0-9]{4}" https://www.elasticms.be
+```
+
+If needed you can adjust the RegEx flags with the `--flags` options. Default value is `gi`:
+
+```shell
+node src/search.js "BE[0-9]{2}.[0-9]{4}.[0-9]{4}.[0-9]{4}" https://www.elasticms.be --flags=i
+```
 
 ## Docker
 

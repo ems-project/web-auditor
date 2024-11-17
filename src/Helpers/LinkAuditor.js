@@ -15,8 +15,13 @@ module.exports = class LinkAuditor {
   async auditUrls (hrefs) {
     const setHrefs = new Set(hrefs)
     const promises = []
+    let counter = 0
     setHrefs.forEach(href => {
       promises.push(this.auditUrl(href))
+      ++counter
+      if ((counter % 10) === 0) {
+        Promise.all(promises)
+      }
     })
     return Promise.all(promises)
   }
@@ -34,19 +39,28 @@ module.exports = class LinkAuditor {
     if (this.#cacheHrefs[href]) {
       return this.#cacheHrefs[href]
     }
-    const url = new URL(href)
-    switch (url.protocol) {
-      case 'http:':
-      case 'https:':
-        return this.#request(href)
+    try {
+      const url = new URL(href)
+      switch (url.protocol) {
+        case 'http:':
+        case 'https:':
+          return this.#request(href)
+      }
+      const data = {
+        url: href,
+        status_code: 302,
+        message: 'Protocol not supported'
+      }
+      this.#cacheHrefs[href] = data
+
+      return data
+    } catch (err) {
+      return {
+        url: href,
+        status_code: 400,
+        message: 'Invalid URL'
+      }
     }
-    const data = {
-      url: href,
-      status_code: 302,
-      message: 'Protocol not supported'
-    }
-    this.#cacheHrefs[href] = data
-    return data
   }
 
   #request (href) {
