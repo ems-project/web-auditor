@@ -34,7 +34,7 @@ let counter = 0;
     }
     const array = [...document.content.matchAll(regexp)]
     for (const key in array) {
-      console.log(document.url + ';' + array[key])
+      console.log('"' + document.url + '";"' + array[key] + '"')
       counter = counter + 1
     }
   }
