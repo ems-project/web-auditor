@@ -124,6 +124,9 @@ module.exports = class LinkAuditor {
       message: response.statusMessage,
       mimetype: response.headers['content-type'] ?? null
     }
+    if (response.headers['content-length']) {
+      data.size = response.headers['content-length']
+    }
     this.#cacheHrefs[href] = data
     return data
   }

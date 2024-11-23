@@ -121,6 +121,14 @@ If needed you can adjust the RegEx flags with the `--flags` options. Default val
 node src/search.js "BE[0-9]{2}.[0-9]{4}.[0-9]{4}.[0-9]{4}" https://www.elasticms.be --flags=i
 ```
 
+Another example to get all instance of the pattern `bic` with 7 optional characters before and 15 optional characters after.
+With the extra condition that the both characters just before and just before aren't an alphanumeric characters.
+Th result is saved in a `bic.csv` file.
+
+```shell
+node src/search.js ".{0,7}\Wbic\W.{0,15}" > bic.csv
+```
+
 ## Docker
 
 ### Build the image
