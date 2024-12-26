@@ -94,6 +94,7 @@ In order to pass them to the `audit.sh` script all options can be provided to al
  * `--pa11y-limit=100`: Limit the upload of P11Y errors to the first x one. Default value `100`. (only for the `upload.js` script)
  * `--status-code-limit=404`: If defined, limit the upload of links to one with status code bigger or equal to x. (only for the `upload.js` script)
  * `--max-concurrency=10`: Sets the maximum concurrency (parallelism) for the crawl. Default value `50`.
+ * `--max-size=52428800`: Sets the maximum size of a response to be audited. Default value `52428800`.
 
 And then you can run :
 ````shell
