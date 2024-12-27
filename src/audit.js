@@ -84,8 +84,14 @@ const crawler = new PuppeteerCrawler({
           data.content = await page.evaluate(el => el.textContent, body)
           data.content = data.content.replace(/\s{2,}/g, ' ').trim()
         }
-        const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
-          const url = a.href ?? a.src
+        let hrefs = await page.$$eval('[href], [src]', links => links.filter(a => {
+          const href = (a.href ?? a.src ?? '').split('#')[0]
+          if (href.length <= 0) {
+            return false
+          }
+          return true
+        }).map(a => {
+          const url = (a.href ?? a.src ?? '').split('#')[0]
           const text = (a.innerText ?? '').trim()
           const type = a.tagName.toLowerCase()
           return {
