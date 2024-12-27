@@ -11,6 +11,7 @@ const baseUrl = args._[0]
 let datasetId = args._[1]
 const ignoreSsl = args['ignore-ssl']
 const waitUntil = args['wait-until']
+const deadLinks = args['dead-links']
 const maxConcurrency = args['max-concurrency'] ?? 50
 const maxSize = Number.parseInt(args['max-size'] ?? '52428800')
 const content = args.content
@@ -100,6 +101,20 @@ const crawler = new PuppeteerCrawler({
             url
           }
         }))
+
+        const founds = []
+        hrefs = hrefs.filter(href => {
+          if (founds.indexOf(href.url) > 0) {
+            return false
+          }
+          founds.push(href.url)
+          if (deadLinks) {
+            return true
+          }
+          const url = new URL(href.url)
+          return origin === url.origin
+        })
+
         const auditUrls = await linkAuditor.auditUrls(hrefs.map(link => link.url))
         for (const auditIndex in auditUrls) {
           for (const hrefIndex in hrefs) {
