@@ -6,9 +6,11 @@ module.exports = class LinkAuditor {
   #cacheHrefs
   #origin
   #content
-  constructor (origin, content) {
+  #maxSize
+  constructor (origin, content, maxSize) {
     this.#origin = origin
     this.#content = content
+    this.#maxSize = maxSize
     this.#cacheHrefs = []
   }
 
@@ -81,7 +83,8 @@ module.exports = class LinkAuditor {
                 !self.#content ||
                 Header.isHtmlMimetype(data.mimetype) ||
                 ((new URL(href)).origin !== self.#origin) ||
-                ['application/octet-stream', 'text/javascript', 'text/css', 'application/x-javascript'].includes(data.mimetype)) {
+                ['application/octet-stream', 'text/javascript', 'text/css', 'application/x-javascript'].includes(data.mimetype) ||
+                (data.size ?? 0) > self.#maxSize) {
               req.destroy()
               resolve(data)
             } else {

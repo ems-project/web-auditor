@@ -11,7 +11,9 @@ const baseUrl = args._[0]
 let datasetId = args._[1]
 const ignoreSsl = args['ignore-ssl']
 const waitUntil = args['wait-until']
+const deadLinks = args['dead-links']
 const maxConcurrency = args['max-concurrency'] ?? 50
+const maxSize = Number.parseInt(args['max-size'] ?? '52428800')
 const content = args.content
 const hashes = []
 let dataset = null
@@ -27,7 +29,7 @@ if (undefined === datasetId) {
   datasetId = baseUrl.replaceAll('/', '_').replaceAll(':', '')
 }
 const origin = (new URL(baseUrl)).origin
-const linkAuditor = new LinkAuditor(origin, content)
+const linkAuditor = new LinkAuditor(origin, content, maxSize)
 if (ignoreSsl) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 }
@@ -83,8 +85,14 @@ const crawler = new PuppeteerCrawler({
           data.content = await page.evaluate(el => el.textContent, body)
           data.content = data.content.replace(/\s{2,}/g, ' ').trim()
         }
-        const hrefs = await page.$$eval('[href], [src]', links => links.filter(a => (a.href ?? a.src).length > 0).map(a => {
-          const url = a.href ?? a.src
+        let hrefs = await page.$$eval('[href], [src]', links => links.filter(a => {
+          const href = (a.href ?? a.src ?? '').split('#')[0]
+          if (href.length <= 0) {
+            return false
+          }
+          return true
+        }).map(a => {
+          const url = (a.href ?? a.src ?? '').split('#')[0]
           const text = (a.innerText ?? '').trim()
           const type = a.tagName.toLowerCase()
           return {
@@ -93,6 +101,20 @@ const crawler = new PuppeteerCrawler({
             url
           }
         }))
+
+        const founds = []
+        hrefs = hrefs.filter(href => {
+          if (founds.indexOf(href.url) > 0) {
+            return false
+          }
+          founds.push(href.url)
+          if (deadLinks) {
+            return true
+          }
+          const url = new URL(href.url)
+          return origin === url.origin
+        })
+
         const auditUrls = await linkAuditor.auditUrls(hrefs.map(link => link.url))
         for (const auditIndex in auditUrls) {
           for (const hrefIndex in hrefs) {
