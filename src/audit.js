@@ -111,8 +111,16 @@ const crawler = new PuppeteerCrawler({
           if (deadLinks) {
             return true
           }
-          const url = new URL(href.url)
-          return origin === url.origin
+          if (href.url.startsWith('.') || href.url.startsWith('/')) {
+            return true
+          }
+          try {
+            const url = new URL(href.url)
+            return origin === url.origin
+          } catch (err) {
+            console.log(err)
+            return false
+          }
         })
 
         const auditUrls = await linkAuditor.auditUrls(hrefs.map(link => link.url))
@@ -172,6 +180,7 @@ const crawler = new PuppeteerCrawler({
         }
       }
     } catch (err) {
+      console.log(err)
       data.status_code = data.status_code ?? 500
       data.error = err.message ?? 'This url encountered an unknown error'
     }
